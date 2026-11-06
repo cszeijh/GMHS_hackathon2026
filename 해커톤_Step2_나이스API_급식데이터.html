@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해커톤 수업자료 | Step2. 나이스 Open API로 급식 데이터 가져오기</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #5a6472;
+    --accent: #1d6f5c;
+    --accent-bg: #eaf4f1;
+    --border: #dfe3e8;
+    --code-bg: #1e2530;
+    --code-fg: #dbe4ef;
+    --warn-bg: #fdf3e7;
+    --warn-border: #e8b465;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.7;
+  }
+  .container { max-width: 880px; margin: 0 auto; padding: 40px 24px 100px; }
+  .stepnav { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stepnav a {
+    text-decoration: none;
+    color: var(--muted);
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font-size: 13px;
+  }
+  .stepnav a.current { background: var(--accent); color: #fff; border-color: var(--accent); }
+  header.top { border-bottom: 2px solid var(--fg); padding-bottom: 20px; margin-bottom: 36px; }
+  header.top .eyebrow {
+    font-size: 13px; letter-spacing: 0.06em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  header.top h1 { font-size: 28px; margin: 0 0 10px; }
+  header.top p { color: var(--muted); margin: 0; font-size: 15px; }
+
+  h3.sub {
+    font-size: 17px; margin: 32px 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h3.sub .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 22px; padding: 0 5px; border-radius: 6px;
+    background: var(--fg); color: #fff; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.03em; flex-shrink: 0;
+  }
+  p { margin: 10px 0; }
+
+  pre {
+    background: var(--code-bg); color: var(--code-fg);
+    padding: 18px 20px; border-radius: 8px; overflow-x: auto;
+    font-size: 13.5px; line-height: 1.65; margin: 12px 0 20px;
+  }
+  code { font-family: "D2Coding", "Consolas", "SF Mono", monospace; }
+  .filename-tag {
+    font-family: "D2Coding", "Consolas", monospace;
+    font-size: 12.5px; color: var(--muted);
+    margin-bottom: -8px; margin-top: 12px;
+  }
+
+  .result-box {
+    border: 1px dashed var(--border); border-radius: 8px;
+    padding: 14px 18px; margin: 12px 0 20px; background: #fafbfc;
+  }
+  .result-box .tag {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .result-box pre { background: transparent; color: var(--fg); padding: 0; margin: 0; font-size: 13.5px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 24px; font-size: 13.5px; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f4f6f8; font-weight: 600; width: 26%; }
+  td code { font-size: 12.5px; background: #f1f3f5; padding: 1px 5px; border-radius: 3px; }
+
+  .steps { counter-reset: step; padding: 0; margin: 14px 0 22px; list-style: none; }
+  .steps li {
+    counter-increment: step; position: relative;
+    padding-left: 34px; margin-bottom: 10px; font-size: 14.5px;
+  }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 0;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .note {
+    background: var(--warn-bg); border: 1px solid var(--warn-border);
+    border-radius: 8px; padding: 14px 18px; font-size: 14px; margin: 18px 0;
+  }
+  .note .tag { font-weight: 700; font-size: 12.5px; color: #8a5a12; margin-bottom: 6px; letter-spacing: 0.03em; }
+
+  .recap { border-top: 2px solid var(--fg); padding-top: 16px; margin-top: 36px; }
+  .recap h3 { font-size: 15px; margin: 0 0 10px; }
+  .recap ul { margin: 0; padding-left: 20px; font-size: 14px; }
+  .recap li { margin-bottom: 5px; }
+
+  footer.next {
+    border: 1.5px dashed var(--border); border-radius: 8px;
+    padding: 18px 22px; font-size: 14px; color: var(--muted); margin-top: 40px;
+  }
+  footer.next strong { color: var(--fg); }
+  footer.next a { color: var(--accent); }
+
+  @media print { body { font-size: 12px; } }
+
+  @media print {
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .back-to-top, #progressbar, .stepnav { display: none !important; }
+    details > *:not(summary) { display: block !important; }
+  }
+
+  html { scroll-behavior: smooth; }
+
+  #progressbar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); width: 0%; z-index: 999;
+    transition: width .1s linear;
+  }
+
+  .stepnav a { transition: all .15s ease; }
+  .stepnav a:hover:not(.current) { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  .note, .problem-box, pre, .flow .box, .extra-box {
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .note:hover, .problem-box:hover, pre:hover, .flow .box:hover, .extra-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  }
+
+  table tr:hover td { background: var(--accent-bg); }
+
+  .result-box summary {
+    cursor: pointer; list-style: none; outline: none;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .result-box summary::-webkit-details-marker { display: none; }
+  .result-box summary::before {
+    content: "▶"; font-size: 9px; color: var(--accent);
+    transition: transform .15s ease;
+  }
+  .result-box[open] summary::before { transform: rotate(90deg); }
+  .result-box[open] summary { margin-bottom: 8px; }
+  .result-box:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+
+  .steps-progress { font-size: 12px; color: var(--muted); font-weight: 600; margin: 4px 0 10px; }
+
+  .extra-box {
+    border: 1.5px solid var(--accent);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 28px 0;
+    background: var(--accent-bg);
+  }
+  .extra-box .tag {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--accent);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .extra-box p { margin: 14px 0 8px; }
+  .extra-box p:first-of-type { margin-top: 0; }
+  .extra-box pre { margin: 8px 0 18px; }  .steps li { cursor: pointer; transition: opacity .15s ease; }
+  .steps li:hover { opacity: 0.85; }
+  .steps li.done { opacity: 0.5; text-decoration: line-through; }
+  .steps li.done::before { content: "✓"; }
+
+  .back-to-top {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--accent); color: #fff; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    opacity: 0; pointer-events: none; transform: translateY(10px);
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 998;
+  }
+  .back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .back-to-top:hover { filter: brightness(1.1); }
+
+  @media (max-width: 600px) {
+    .container { padding: 24px 16px 80px; }
+    header.top h1 { font-size: 22px; }
+    h3.sub { font-size: 15.5px; }
+    .flow { flex-direction: column; }
+    .back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; }
+  }
+
+  /* ── 개념 팝업 (함수 보충 설명) ── */
+  .concept-hint { font-size: 14px; color: var(--muted); margin: 10px 0 20px; }
+  .concept-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: inherit; font-size: 13px; font-weight: 600; line-height: 1.5;
+    color: var(--accent); background: var(--accent-bg);
+    border: 1px solid var(--accent); border-radius: 14px;
+    padding: 3px 12px; margin-left: 4px; cursor: pointer;
+    transition: all .15s ease;
+  }
+  .concept-btn:hover { background: var(--accent); color: #fff; }
+  .concept-btn:focus-visible, .cm-close:focus-visible, .cm-foot button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  body.modal-open { overflow: hidden; }
+
+  dialog.cm {
+    width: min(760px, calc(100vw - 32px)); max-width: none;
+    max-height: min(88vh, 920px);
+    padding: 0; border: 1px solid var(--border); border-radius: 12px;
+    color: var(--fg); background: var(--bg);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    overflow: hidden;
+  }
+  dialog.cm[open] { display: flex; flex-direction: column; animation: cm-in .18s ease; }
+  dialog.cm::backdrop { background: rgba(26,26,26,0.5); }
+  @keyframes cm-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { dialog.cm[open] { animation: none; } }
+
+  .cm-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    padding: 18px 22px 14px; border-bottom: 2px solid var(--fg); flex-shrink: 0;
+  }
+  .cm-eyebrow { font-size: 12px; letter-spacing: 0.06em; color: var(--muted); }
+  .cm-head h2 { font-size: 19px; margin: 2px 0 0; line-height: 1.4; }
+  .cm-close {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    border: 1px solid var(--border); background: #fff; color: var(--muted);
+    font-size: 16px; cursor: pointer; transition: all .15s ease;
+  }
+  .cm-close:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  .cm-body { padding: 6px 22px 24px; overflow-y: auto; overscroll-behavior: contain; font-size: 14.5px; }
+  .cm-body h3 { font-size: 16px; margin: 28px 0 8px; display: flex; align-items: center; gap: 8px; }
+  .cm-body h3 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 22px; padding: 0 5px; border-radius: 6px;
+    background: var(--fg); color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .cm-body pre:hover { transform: none; box-shadow: none; }
+  .cm-body td, .cm-body th { overflow-wrap: anywhere; }
+  .cm-body .result-box summary { display: block; text-transform: none; line-height: 1.6; }
+  .cm-body .result-box summary::before { margin-right: 8px; display: inline-block; }
+  .cm-body .result-box pre { white-space: pre-wrap; font-size: 13.5px; }
+  .cm-lead {
+    border-left: 3px solid var(--accent); background: var(--accent-bg);
+    padding: 14px 18px; margin: 18px 0 4px; font-size: 14.5px;
+  }
+  .cm-lead strong { color: var(--accent); }
+  .cm-warn {
+    background: var(--warn-bg); border: 1px solid var(--warn-border);
+    border-radius: 8px; padding: 12px 16px; font-size: 14px; margin: 14px 0;
+  }
+  .cm-warn .tag { font-weight: 700; font-size: 12.5px; color: #8a5a12; margin-bottom: 4px; }
+  .cm-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 22px; border-top: 1px solid var(--border); background: #fafbfc;
+    font-size: 12.5px; color: var(--muted); flex-shrink: 0;
+  }
+  .cm-foot button {
+    font-family: inherit; font-size: 13.5px; font-weight: 600; color: #fff;
+    background: var(--accent); border: 0; border-radius: 8px; padding: 7px 18px; cursor: pointer;
+  }
+  .cm-foot button:hover { filter: brightness(1.1); }
+
+  @media (max-width: 600px) {
+    dialog.cm { width: calc(100vw - 16px); max-height: 92vh; }
+    .cm-head { padding: 14px 16px 12px; }
+    .cm-head h2 { font-size: 17px; }
+    .cm-body { padding: 4px 16px 20px; }
+    .cm-foot { padding: 10px 16px; }
+    .cm-foot span { display: none; }
+    .cm-foot button { width: 100%; }
+  }
+  @media print { .concept-hint, dialog.cm { display: none !important; } }
+</style>
+</head>
+<body>
+<div id="progressbar"></div>
+<button class="back-to-top" id="backToTop" aria-label="맨 위로">↑</button>
+<div class="container">
+
+  <div class="stepnav">
+    <a href="index.html">🏠 메인</a>
+    <a href="해커톤_Step0_개발환경준비.html">Step0</a>
+    <a href="해커톤_Step1_API기초.html">Step1</a>
+    <a href="해커톤_Step2_나이스API_급식데이터.html" class="current">Step2</a>
+    <a href="해커톤_Step3_Streamlit기초.html">Step3</a>
+    <a href="해커톤_Step4_Streamlit배포.html">Step4</a>
+    <a href="해커톤_Step5_바이브코딩.html">Step5</a>
+  </div>
+
+  <header class="top">
+    <div class="eyebrow">해커톤 · 데이터 분석 수업자료</div>
+    <h1>Step2. 나이스 Open API로 급식 데이터 가져오기</h1>
+    <p>Step1에서 API 요청-응답 구조와 JSON을 다뤘다는 전제로 진행한다.</p>
+  </header>
+
+  <h3 class="sub"><span class="num">01</span>나이스 Open API 소개</h3>
+  <p>나이스(NEIS)는 전국 학교의 급식, 학사일정, 학교 기본정보 등을 공개 API로 제공한다. 제공처: <code>open.neis.go.kr</code></p>
+
+  <div class="note">
+    <div class="tag">준비물 — 인증키 발급</div>
+    open.neis.go.kr 접속 → 오픈API 활용신청 → 급식식단정보 서비스 신청 → 발급된 인증키(KEY)를 복사해둔다.
+  </div>
+
+  <h3 class="sub"><span class="num">02</span>필요한 API 두 개</h3>
+  <p>급식 데이터를 가져오려면 학교 코드가 필요하다. 학교 이름만으로는 요청할 수 없기 때문에, 먼저 학교 이름으로 코드를 찾는 API를 호출하고, 그 코드로 급식 API를 호출하는 2단계 과정을 거친다.</p>
+
+  <table>
+    <tr><th>학교 검색</th><td><code>https://open.neis.go.kr/hub/schoolInfo</code> — 교육청 코드 + 학교 이름 → 학교 코드</td></tr>
+    <tr><th>급식 조회</th><td><code>https://open.neis.go.kr/hub/mealServiceDietInfo</code> — 교육청 코드 + 학교 코드 + 날짜 → 급식 메뉴</td></tr>
+  </table>
+
+  <h3 class="sub"><span class="num">03</span>학교 코드 찾기</h3>
+  <p>학교 이름만으로 검색하면 다른 지역에 같은 이름의 학교가 있을 때 엉뚱한 학교가 나올 수 있다. 우리 학교가 속한 교육청 코드를 미리 알고 있으니, 검색할 때 같이 넘겨서 그 교육청 안으로 범위를 좁힌다.</p>
+  <p class="concept-hint">아래 코드의 <code>def find_school(...)</code>가 낯설다면 <button type="button" class="concept-btn" data-modal="dlg-func" aria-haspopup="dialog">📖 함수 알아보기</button></p>
+  <div class="filename-tag">meal_practice.py</div>
+  <pre><code>import requests
+
+API_KEY = "발급받은_인증키"
+
+def find_school(office_code, school_name):
+    url = "https://open.neis.go.kr/hub/schoolInfo"
+    params = {
+        "KEY": API_KEY,
+        "Type": "json",
+        "pIndex": 1,
+        "pSize": 5,
+        "ATPT_OFCDC_SC_CODE": office_code,
+        "SCHUL_NM": school_name
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+    school = data["schoolInfo"][1]["row"][0]
+    return school["SD_SCHUL_CODE"]
+
+office_code = "J10"   # 경기도교육청 — 우리 학교가 속한 교육청 코드
+school_code = find_school(office_code, "광명고등학교")
+print(school_code)</code></pre>
+
+  <details class="result-box">
+    <summary class="tag">실행 결과 확인하기</summary>
+    <pre>7530580</pre>
+  </details>
+
+  <p>응답 데이터의 구조가 <code>["schoolInfo"][1]["row"][0]</code>처럼 조금 복잡하다. 나이스 API는 응답을 <code>head</code>(요청 정보)와 <code>row</code>(실제 데이터 목록) 두 부분으로 나눠서 주기 때문이다. <code>[0]</code>이 head, <code>[1]</code>이 row다.</p>
+
+  <div class="filename-tag">schoolInfo 실제 응답 (일부 필드만 표시)</div>
+  <pre><code>{
+  "schoolInfo": [
+    {
+      "head": [
+        { "list_total_count": 1 },
+        { "RESULT": { "CODE": "INFO-000", "MESSAGE": "정상 처리되었습니다." } }
+      ]
+    },
+    {
+      "row": [
+        {
+          "ATPT_OFCDC_SC_CODE": "J10",
+          "ATPT_OFCDC_SC_NM": "경기도교육청",
+          "SD_SCHUL_CODE": "7530580",
+          "SCHUL_NM": "광명고등학교",
+          "ENG_SCHUL_NM": "Gwangmyeong High School"
+        }
+      ]
+    }
+  ]
+}</code></pre>
+  <p>이 구조를 인덱스로 하나씩 따라가면 이렇다.</p>
+  <table>
+    <tr><th><code>data["schoolInfo"]</code></th><td>리스트. 안에 <code>head</code> 객체 1개, <code>row</code> 객체 1개가 순서대로 들어있다.</td></tr>
+    <tr><th><code>["schoolInfo"][0]</code></th><td><code>head</code>. 요청이 성공했는지, 검색 결과가 총 몇 건인지 같은 부가 정보.</td></tr>
+    <tr><th><code>["schoolInfo"][1]</code></th><td><code>row</code>. 실제 찾고자 한 학교 데이터가 리스트로 들어있다.</td></tr>
+    <tr><th><code>["schoolInfo"][1]["row"]</code></th><td>학교 목록. 교육청으로 범위를 좁혀도 검색 결과가 여러 개면 이 리스트에 여러 개가 들어있다.</td></tr>
+    <tr><th><code>["schoolInfo"][1]["row"][0]</code></th><td>검색된 첫 번째 학교의 정보 딕셔너리. <code>["SD_SCHUL_CODE"]</code>처럼 키로 원하는 값을 꺼낸다.</td></tr>
+  </table>
+
+  <h3 class="sub"><span class="num">04</span>급식 데이터 가져오기</h3>
+  <div class="filename-tag">meal_practice.py — 이어서 작성</div>
+  <pre><code>def get_meal(office_code, school_code, date):
+    url = "https://open.neis.go.kr/hub/mealServiceDietInfo"
+    params = {
+        "KEY": API_KEY,
+        "Type": "json",
+        "pIndex": 1,
+        "pSize": 5,
+        "ATPT_OFCDC_SC_CODE": office_code,
+        "SD_SCHUL_CODE": school_code,
+        "MLSV_YMD": date   # YYYYMMDD 형식
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+    return data["mealServiceDietInfo"][1]["row"][0]["DDISH_NM"]
+
+menu = get_meal(office_code, school_code, "20250915")
+print(menu)</code></pre>
+
+  <div class="filename-tag">mealServiceDietInfo 실제 응답 (일부 필드만 표시)</div>
+  <pre><code>{
+  "mealServiceDietInfo": [
+    {
+      "head": [
+        { "list_total_count": 1 },
+        { "RESULT": { "CODE": "INFO-000", "MESSAGE": "정상 처리되었습니다." } }
+      ]
+    },
+    {
+      "row": [
+        {
+          "ATPT_OFCDC_SC_CODE": "J10",
+          "SD_SCHUL_CODE": "7530580",
+          "SCHUL_NM": "광명고등학교",
+          "MMEAL_SC_NM": "중식",
+          "MLSV_YMD": "20250915",
+          "DDISH_NM": "백미밥&lt;br/&gt;콩나물국&lt;br/&gt;제육볶음5.6.13&lt;br/&gt;연근조림&lt;br/&gt;깍두기",
+          "CAL_INFO": "820.5 Kcal"
+        }
+      ]
+    }
+  ]
+}</code></pre>
+  <p><code>head</code>·<code>row</code> 구조는 앞서 본 <code>schoolInfo</code>와 똑같다. 다른 점은 <code>DDISH_NM</code> 값 안이다. 메뉴 사이 줄바꿈이 실제 줄바꿈 문자가 아니라 <code>&lt;br/&gt;</code>라는 문자열 그대로 들어있고, 메뉴 이름 뒤에 붙은 숫자는 알레르기 유발 식품 번호다. 그래서 <code>print(menu)</code>를 그대로 실행하면 지금은 아래처럼 깔끔하게 나오지 않고, <code>&lt;br/&gt;</code>가 텍스트로 그대로 찍힌다.</p>
+
+  <details class="result-box">
+    <summary class="tag">지금 코드로 실행하면(가공 전)</summary>
+    <pre>백미밥&lt;br/&gt;콩나물국&lt;br/&gt;제육볶음5.6.13&lt;br/&gt;연근조림&lt;br/&gt;깍두기</pre>
+  </details>
+
+  <details class="result-box">
+    <summary class="tag">정리하면(가공 후)</summary>
+    <pre>백미밥
+콩나물국
+제육볶음 5.6.13
+연근조림
+깍두기</pre>
+  </details>
+
+  <div class="note">
+    <div class="tag">참고</div>
+    <code>&lt;br/&gt;</code> 정리와 알레르기 번호 처리 방법은 이번 차시 마지막에서 다룬다. 먼저 API로 실제 데이터를 가져오는 흐름부터 끝까지 완성한다.
+  </div>
+
+  <h3 class="sub"><span class="num">05</span>전체 코드로 합치기</h3>
+  <div class="filename-tag">meal_practice.py — 전체</div>
+  <pre><code>import requests
+
+API_KEY = "발급받은_인증키"
+
+def find_school(office_code, school_name):
+    url = "https://open.neis.go.kr/hub/schoolInfo"
+    params = {
+        "KEY": API_KEY, "Type": "json",
+        "pIndex": 1, "pSize": 5,
+        "ATPT_OFCDC_SC_CODE": office_code,
+        "SCHUL_NM": school_name
+    }
+    data = requests.get(url, params=params).json()
+    school = data["schoolInfo"][1]["row"][0]
+    return school["SD_SCHUL_CODE"]
+
+def get_meal(office_code, school_code, date):
+    url = "https://open.neis.go.kr/hub/mealServiceDietInfo"
+    params = {
+        "KEY": API_KEY, "Type": "json",
+        "pIndex": 1, "pSize": 5,
+        "ATPT_OFCDC_SC_CODE": office_code,
+        "SD_SCHUL_CODE": school_code,
+        "MLSV_YMD": date
+    }
+    data = requests.get(url, params=params).json()
+    return data["mealServiceDietInfo"][1]["row"][0]["DDISH_NM"]
+
+# 실행
+office_code = "J10"   # 경기도교육청 — 우리 학교가 속한 교육청 코드
+school_name = "광명고등학교"
+date = "20250915"
+
+school_code = find_school(office_code, school_name)
+menu = get_meal(office_code, school_code, date)
+
+print(f"{school_name}의 {date} 급식:")
+print(menu)</code></pre>
+
+  <p>지금은 <code>find_school()</code>을 매번 호출해서 학교 코드를 찾는다. 매번 검색하는 건 비효율적이지만, 지금 단계에서는 정확하게 동작하는 것이 우선이다. 캐싱으로 개선하는 것은 Streamlit에 익숙해진 뒤 심화 내용으로 다룬다.</p>
+
+  <div class="recap">
+    <h3>정리</h3>
+    <ul>
+      <li>학교 이름만으로는 급식 데이터를 바로 조회할 수 없고, 학교 코드를 먼저 찾아야 한다.</li>
+      <li>나이스 API 응답은 <code>[head, row]</code> 구조이고, 실제 데이터는 <code>row</code>에 있다.</li>
+      <li>날짜 파라미터는 <code>YYYYMMDD</code> 형식의 문자열로 넘긴다.</li>
+    </ul>
+  </div>
+
+  <div class="extra-box">
+    <div class="tag">한 걸음 더 — 메뉴 데이터 정리하기</div>
+    <p><code>get_meal()</code>이 돌려주는 값은 아직 가공 전이다.</p>
+
+    <p><strong>1. <code>&lt;br/&gt;</code>로 이어붙은 메뉴를 리스트로 쪼갠다.</strong></p>
+    <pre><code>raw = "백미밥&lt;br/&gt;콩나물국&lt;br/&gt;제육볶음5.6.13"
+dishes = raw.split("&lt;br/&gt;")
+print(dishes)
+# ['백미밥', '콩나물국', '제육볶음5.6.13']</code></pre>
+
+    <p>여기까지는 문제없다. 그런데 실제 학교로 조회해보면 메뉴 이름에 알레르기 번호 말고도 여러 표시가 섞여 나온다.</p>
+    <pre><code>['압맥보리밥(고)', '연포탕! (13.18)', '양배추찜/깻잎찜쌈장! (1.5.6.13)',
+ '돈육고추장불고기* (5.6.10.13.16)', '섞박지(고) (9)', '파인애플생과!', '[선택]메론']</code></pre>
+    <p>알레르기 번호는 괄호 안에 있고, <code>(고)</code>처럼 숫자가 아닌 표시도 있고, <code>섞박지(고) (9)</code>처럼 괄호가 두 번 나오기도 한다. 끝에 <code>*</code>나 <code>!</code>가 붙기도 하고, <code>[선택]</code>처럼 대괄호 태그가 맨 앞에 붙기도 한다. 뒤에서부터 숫자만 잘라내는 방식으로는 이걸 처리할 수 없다 — 괄호 안이 숫자가 아닐 때도 있고, 애초에 문자열이 <code>)</code>로 끝나서 첫 글자부터 걸린다.</p>
+
+    <p><strong>2. 정규표현식(re)으로 괄호·대괄호 구간을 한 번에 지운다.</strong></p>
+    <pre><code>import re
+
+def clean_dish_name(dish):
+    dish = re.sub(r"[\(\[].*?[\)\]]", "", dish)   # 괄호/대괄호와 그 안 내용을 빈 문자열로 치환
+    return dish.strip("*! ")                       # 남은 *, !, 공백을 양 끝에서 제거</code></pre>
+
+    <p><code>re.sub(패턴, 바꿀 문자열, 대상)</code>은 패턴에 걸리는 부분을 찾아서 바꾼다. 여기서는 빈 문자열로 바꾸니 결과적으로 삭제하는 셈이다. 패턴을 하나씩 뜯어보면 이렇다.</p>
+    <table>
+      <tr><th><code>[\(\[]</code></th><td>여는 괄호 하나 — <code>(</code> 또는 <code>[</code>.</td></tr>
+      <tr><th><code>.*?</code></th><td>그 사이의 아무 문자나, 가능한 한 짧게 매칭한다. <code>?</code>가 없으면 <code>섞박지(고) (9)</code>처럼 괄호가 두 번 나올 때 첫 <code>(</code>부터 마지막 <code>)</code>까지를 통째로 한 덩어리로 묶어버릴 수 있다.</td></tr>
+      <tr><th><code>[\)\]]</code></th><td>닫는 괄호 하나 — <code>)</code> 또는 <code>]</code>.</td></tr>
+    </table>
+
+    <p>실제 데이터로 확인하면 이렇게 정리된다.</p>
+    <pre><code>samples = ['압맥보리밥(고)', '연포탕! (13.18)', '양배추찜/깻잎찜쌈장! (1.5.6.13)',
+           '돈육고추장불고기* (5.6.10.13.16)', '섞박지(고) (9)', '파인애플생과!', '[선택]메론']
+
+print([clean_dish_name(d) for d in samples])
+# ['압맥보리밥', '연포탕', '양배추찜/깻잎찜쌈장', '돈육고추장불고기', '섞박지', '파인애플생과', '메론']</code></pre>
+
+    <p>두 단계를 합치면 이렇다.</p>
+    <pre><code>import re
+
+def clean_dish_name(dish):
+    dish = re.sub(r"[\(\[].*?[\)\]]", "", dish)
+    return dish.strip("*! ")
+
+def clean_menu(raw):
+    dishes = raw.split("&lt;br/&gt;")
+    return [clean_dish_name(d) for d in dishes]
+
+menu = get_meal(office_code, school_code, "20250915")
+print(clean_menu(menu))</code></pre>
+  </div>
+
+  <footer class="next">
+    <strong>다음</strong> — <a href="해커톤_Step3_Streamlit기초.html">Step3. Streamlit으로 화면 만들기</a>로 이어간다. 캐싱은 Streamlit에서 반복 요청이 눈에 보이기 시작할 때 심화로 다룬다.
+  </footer>
+
+</div>
+<!-- ── 개념 팝업: 함수 ── -->
+<dialog class="cm" id="dlg-func" aria-labelledby="dlg-func-title">
+  <div class="cm-head">
+    <div>
+      <div class="cm-eyebrow">개념 짚고 가기 · 파이썬 기초</div>
+      <h2 id="dlg-func-title">함수 — 이름을 붙여 둔 작업 묶음</h2>
+    </div>
+    <button type="button" class="cm-close" data-close aria-label="팝업 닫기">✕</button>
+  </div>
+
+  <div class="cm-body">
+    <div class="cm-lead">
+      함수는 <strong>자주 하는 일에 이름을 붙여 두고, 필요할 때 그 이름으로 부르는 것</strong>이다.
+      <code>find_school</code>은 "학교 이름으로 학교 코드를 찾는 일"에 이름을 붙인 것이다.
+      한 번 적어 두면 어디서든 부를 수 있고, Step3에서 웹 화면을 만들 때도 고치지 않고 그대로 가져다 쓴다.
+    </div>
+
+    <h3><span class="num">01</span>정의와 호출은 다르다</h3>
+    <table>
+      <tr><th>정의</th><td><code>def 이름(...):</code> 아래에 들여쓰기 — 방법을 적어 둔다. <strong>이때는 실행되지 않는다.</strong></td></tr>
+      <tr><th>호출</th><td><code>이름(...)</code> — 적어 둔 방법을 <strong>실제로 실행한다.</strong> 몇 번이든 부를 수 있다.</td></tr>
+    </table>
+    <pre><code>def greet(name):
+    print(name + "님, 안녕하세요")
+
+# 여기까지는 아무것도 찍히지 않는다. "방법을 적어 두었을 뿐"이다.
+
+greet("학생 A")    # 학생 A님, 안녕하세요
+greet("학생 B")    # 학생 B님, 안녕하세요</code></pre>
+    <p>코드는 위에서 아래로 읽히므로 <strong>정의가 호출보다 위에</strong> 있어야 한다. <code>def</code> 줄 끝의 콜론과 들여쓰기는 <code>if</code>·<code>for</code>와 같은 규칙이고, 들여쓰기가 끝나는 자리가 함수의 끝이다.</p>
+
+    <h3><span class="num">02</span>값을 건네기 — 매개변수와 인자</h3>
+    <table>
+      <tr><th>매개변수</th><td><code>def find_school(office_code, school_name)</code>의 <code>office_code</code>, <code>school_name</code> — 정의할 때 적는 <strong>받아 둘 자리</strong></td></tr>
+      <tr><th>인자</th><td><code>find_school("J10", "광명고등학교")</code>의 <code>"J10"</code>, <code>"광명고등학교"</code> — 부를 때 건네는 <strong>실제 값</strong></td></tr>
+    </table>
+    <p>이름까지 외울 필요는 없다. "받는 자리"와 "주는 값"이 다르다는 것만 잡으면 된다. 값은 <strong>적은 순서대로</strong> 자리에 들어간다.</p>
+    <div class="cm-warn">
+      <div class="tag">주의</div>
+      순서를 바꿔 <code>find_school("광명고등학교", "J10")</code>이라 쓰면 교육청 코드 자리에 학교 이름이 들어가 엉뚱한 요청이 나간다. 자리 이름을 <code>office_code</code>, <code>school_name</code>처럼 뜻이 드러나게 짓는 이유다.
+    </div>
+
+    <h3><span class="num">03</span>값을 돌려받기 — return과 print</h3>
+    <p><code>print</code>는 <strong>화면에 보여 주는 일</strong>이고, <code>return</code>은 <strong>부른 쪽에 값을 넘기는 일</strong>이다. 겉보기에는 둘 다 "결과가 나온 것"처럼 보이지만 전혀 다르다.</p>
+    <pre><code>def add_print(a, b):
+    print(a + b)            # 찍기만 한다. 돌려주지 않는다
+
+def add_return(a, b):
+    return a + b            # 값을 돌려준다
+
+x = add_print(3, 5)         # 8      화면에는 찍힌다
+print(x)                    # None   그런데 담긴 것은 없다
+
+y = add_return(3, 5)        # 아무것도 찍히지 않는다
+print(y)                    # 8      값이 손에 남았다</code></pre>
+    <p>이 수업에서 <code>school_code = find_school(...)</code>처럼 결과를 변수에 담아 <code>get_meal</code>에 넘기려면 <strong><code>return</code>이 꼭 필요</strong>하다. <code>find_school</code>이 <code>print</code>만 했다면 <code>school_code</code>에는 <code>None</code>이 담긴다.</p>
+
+    <h3><span class="num">04</span>함수 안에서 만든 이름은 밖에서 보이지 않는다</h3>
+    <pre><code>API_KEY = "발급받은_인증키"      # 함수 밖에서 만든 이름
+
+def show_key():
+    count = 1                  # 함수 안에서 만든 이름
+    print(API_KEY)             # 밖의 이름은 안에서 읽을 수 있다
+
+show_key()                     # 발급받은_인증키
+print(count)                   # NameError: name 'count' is not defined</code></pre>
+    <p><code>find_school</code> 안의 <code>url</code>, <code>params</code>, <code>data</code>도 함수가 끝나면 사라진다. 그래서 <strong>밖에서 쓸 값은 <code>return</code>으로 돌려받는다.</strong> 함수마다 같은 이름을 마음 놓고 쓸 수 있는 것도 이 규칙 덕분이다.</p>
+
+    <h3><span class="num">05</span>자주 만나는 오류</h3>
+    <table>
+      <tr><th><code>NameError: name 'find_school' is not defined</code></th><td>정의보다 위에서 불렀거나 이름을 잘못 적었다.</td></tr>
+      <tr><th><code>TypeError: find_school() missing 1 required positional argument</code></th><td>건넨 값이 모자란다. 받는 자리 개수와 건네는 값 개수를 맞춘다.</td></tr>
+      <tr><th><code>IndentationError: expected an indented block</code></th><td><code>def</code> 줄 아래를 들여쓰지 않았다.</td></tr>
+      <tr><th>결과가 <code>None</code>으로 나온다</th><td><code>return</code>을 빠뜨렸다.</td></tr>
+    </table>
+
+    <h3><span class="num">06</span>스스로 확인</h3>
+    <details class="result-box">
+      <summary class="tag">Q1. <code>get_meal("J10", "7530580", "20250915")</code>에서 <code>school_code</code> 자리에 들어가는 값은?</summary>
+      <pre>"7530580" — 두 번째로 건넨 값이다. 값은 적은 순서대로 자리에 들어간다.</pre>
+    </details>
+    <details class="result-box">
+      <summary class="tag">Q2. <code>find_school</code>의 마지막 줄 <code>return school["SD_SCHUL_CODE"]</code>를 지우면 <code>school_code</code>에는 무엇이 담길까?</summary>
+      <pre>None — return이 없는 함수는 None을 돌려준다. 이어서 get_meal을 부르면 엉뚱한 요청이 나간다.</pre>
+    </details>
+  </div>
+
+  <div class="cm-foot">
+    <span>Esc 키를 누르거나 바깥을 눌러도 닫힌다</span>
+    <button type="button" data-close>닫기</button>
+  </div>
+</dialog>
+
+<script>
+  // 개념 팝업 열기·닫기
+  document.querySelectorAll('[data-modal]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var dlg = document.getElementById(btn.getAttribute('data-modal'));
+      if (!dlg) return;
+      dlg.showModal();
+      dlg.querySelector('.cm-body').scrollTop = 0;
+      document.body.classList.add('modal-open');
+    });
+  });
+  document.querySelectorAll('dialog.cm').forEach(function (dlg) {
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+    dlg.querySelectorAll('[data-close]').forEach(function (b) {
+      b.addEventListener('click', function () { dlg.close(); });
+    });
+    dlg.addEventListener('close', function () { document.body.classList.remove('modal-open'); });
+  });
+</script>
+<script>
+  // 실습 체크리스트
+  document.querySelectorAll('.steps').forEach(function (list) {
+    var items = list.querySelectorAll('li');
+    var total = items.length;
+    var progress = document.createElement('div');
+    progress.className = 'steps-progress';
+    function update() {
+      var done = list.querySelectorAll('li.done').length;
+      progress.textContent = done + ' / ' + total + ' 완료';
+    }
+    list.parentNode.insertBefore(progress, list);
+    items.forEach(function (li) {
+      li.addEventListener('click', function () {
+        li.classList.toggle('done');
+        update();
+      });
+    });
+    update();
+  });
+
+  // 스크롤 시 등장 애니메이션
+  var revealEls = document.querySelectorAll('.container > *:not(.stepnav):not(header.top):not(footer.next)');
+  revealEls.forEach(function (el) { el.classList.add('reveal'); });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(function (el) { io.observe(el); });
+
+  // 상단 진행률 바
+  var bar = document.getElementById('progressbar');
+  function updateBar() {
+    var h = document.documentElement;
+    var scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = (isFinite(scrolled) ? scrolled : 0) + '%';
+  }
+  window.addEventListener('scroll', updateBar);
+  updateBar();
+
+  // 맨 위로 버튼
+  var backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', function () {
+    backToTop.classList.toggle('show', window.scrollY > 400);
+  });
+  backToTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+<script src="code-highlight.js"></script>
+</body>
+</html>

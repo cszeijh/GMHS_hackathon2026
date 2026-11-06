@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해커톤 수업자료 | Step5. 바이브코딩으로 내 앱 확장하기</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #5a6472;
+    --accent: #1d6f5c;
+    --accent-bg: #eaf4f1;
+    --border: #dfe3e8;
+    --code-bg: #1e2530;
+    --code-fg: #dbe4ef;
+    --warn-bg: #fdf3e7;
+    --warn-border: #e8b465;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.7;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 24px 100px; }
+  .stepnav { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stepnav a {
+    text-decoration: none; color: var(--muted); padding: 4px 12px;
+    border: 1px solid var(--border); border-radius: 14px; font-size: 13px;
+    transition: all .15s ease;
+  }
+  .stepnav a.current { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .stepnav a:hover:not(.current) { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  header.top { border-bottom: 2px solid var(--fg); padding-bottom: 20px; margin-bottom: 36px; }
+  header.top .eyebrow { font-size: 13px; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  header.top h1 { font-size: 28px; margin: 0 0 10px; }
+  header.top p { color: var(--muted); margin: 0; font-size: 15px; }
+
+  h3.sub { font-size: 17px; margin: 40px 0 12px; display: flex; align-items: center; gap: 8px; }
+  h3.sub .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 22px; padding: 0 5px; border-radius: 6px;
+    background: var(--fg); color: #fff; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.03em; flex-shrink: 0;
+  }
+  p { margin: 10px 0; }
+
+  .problem-box {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 14px 18px; margin: 14px 0 20px; font-size: 14.5px;
+  }
+  .problem-box strong { color: var(--accent); }
+
+  pre {
+    background: var(--code-bg); color: var(--code-fg); padding: 18px 20px; border-radius: 8px;
+    overflow-x: auto; font-size: 13.5px; line-height: 1.65; margin: 12px 0 20px;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  pre:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+  code { font-family: "D2Coding", "Consolas", "SF Mono", monospace; }
+  .filename-tag { font-family: "D2Coding", "Consolas", monospace; font-size: 12.5px; color: var(--muted); margin-bottom: -8px; margin-top: 12px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 24px; font-size: 13.5px; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f4f6f8; font-weight: 600; width: 26%; }
+  td code { font-size: 12.5px; background: #f1f3f5; padding: 1px 5px; border-radius: 3px; }
+  table tr:hover td { background: var(--accent-bg); }
+
+  .steps { counter-reset: step; padding: 0; margin: 14px 0 22px; list-style: none; }
+  .steps li {
+    counter-increment: step; position: relative; cursor: pointer;
+    padding-left: 34px; margin-bottom: 10px; font-size: 14.5px; transition: opacity .15s ease;
+  }
+  .steps li:hover { opacity: 0.85; }
+  .steps li.done { opacity: 0.5; text-decoration: line-through; }
+  .steps li.done::before { content: "✓"; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 0;
+    width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff;
+    font-size: 12px; display: flex; align-items: center; justify-content: center;
+  }
+  .steps-progress { font-size: 12px; color: var(--muted); font-weight: 600; margin: 4px 0 10px; }
+
+  .note {
+    background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 8px;
+    padding: 14px 18px; font-size: 14px; margin: 18px 0;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .note:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+  .note .tag { font-weight: 700; font-size: 12.5px; color: #8a5a12; margin-bottom: 6px; letter-spacing: 0.03em; }
+
+  .danger { background: #fdecea; border: 1px solid #f5c6cb; border-radius: 8px; padding: 14px 18px; font-size: 14px; margin: 18px 0; }
+  .danger .tag { font-weight: 700; font-size: 12.5px; color: #b71c1c; margin-bottom: 6px; letter-spacing: 0.03em; }
+
+  .recap { border-top: 2px solid var(--fg); padding-top: 16px; margin-top: 36px; }
+  .recap h3 { font-size: 15px; margin: 0 0 10px; }
+  .recap ul { margin: 0; padding-left: 20px; font-size: 14px; }
+  .recap li { margin-bottom: 5px; }
+
+  footer.next { border: 1.5px dashed var(--border); border-radius: 8px; padding: 18px 22px; font-size: 14px; color: var(--muted); margin-top: 40px; }
+  footer.next strong { color: var(--fg); }
+  footer.next a { color: var(--accent); }
+
+  /* ---- 요청→AI→코드 흐름도 (Step1의 API 흐름도와 같은 패턴) ---- */
+  .flow { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 24px 0 28px; flex-wrap: wrap; }
+  .flow .box { border: 1.5px solid var(--fg); border-radius: 8px; padding: 14px 20px; text-align: center; font-size: 14px; min-width: 130px; transition: transform .15s ease, box-shadow .15s ease; }
+  .flow .box:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+  .flow .box .role { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+  .flow .arrow { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: var(--muted); }
+  .flow .arrow .line { font-size: 18px; line-height: 1; }
+
+  /* ---- 프롬프트 표시 박스 ---- */
+  .prompt-box {
+    border-left: 3px solid var(--accent); background: var(--accent-bg); border-radius: 0 8px 8px 0;
+    padding: 14px 18px; margin: 12px 0 20px; font-size: 14.5px;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .prompt-box:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+  .prompt-box .prompt-tag { font-weight: 700; font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .prompt-box .prompt-text { font-style: italic; }
+
+  /* ---- 나쁜/좋은 프롬프트 비교 ---- */
+  .prompt-compare { display: flex; gap: 18px; margin: 14px 0 22px; align-items: stretch; }
+  .prompt-compare > div { flex: 1; min-width: 0; border-radius: 8px; padding: 16px 18px; font-size: 14px; }
+  .prompt-compare .bad { background: #fdecea; border: 1px solid #f5c6cb; }
+  .prompt-compare .good { background: var(--accent-bg); border: 1px solid var(--accent); }
+  .prompt-compare .label { font-weight: 700; font-size: 12.5px; margin-bottom: 8px; }
+  .prompt-compare .bad .label { color: #b71c1c; }
+  .prompt-compare .good .label { color: var(--accent); }
+  @media (max-width: 700px) { .prompt-compare { flex-direction: column; } }
+
+  /* ---- 코드 ↔ 화면 매칭 레이아웃 (Step3와 동일) ---- */
+  .code-preview { display: flex; gap: 18px; margin: 14px 0 26px; align-items: stretch; }
+  .code-preview > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .code-preview pre { margin: 0; flex: 1; }
+  .preview-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  @media (max-width: 760px) { .code-preview { flex-direction: column; } }
+
+  /* ---- Streamlit 화면 목업 (Step3와 동일) ---- */
+  .st-mock-window { border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; background: #fff; height: 100%; transition: transform .15s ease, box-shadow .15s ease; }
+  .st-mock-window:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+  .st-mock-bar { background: #f0f2f6; padding: 8px 12px; display: flex; gap: 6px; border-bottom: 1px solid #e6e6e6; }
+  .st-mock-bar span { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .st-mock-bar .r { background: #ff5f57; } .st-mock-bar .y { background: #febc2e; } .st-mock-bar .g { background: #28c840; }
+  .st-mock-body { padding: 22px 24px; font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, sans-serif; color: #31333F; }
+  .st-title { font-size: 1.8rem; font-weight: 700; margin: 0 0 10px; line-height: 1.25; }
+  .st-write { font-size: 1rem; margin: 6px 0; line-height: 1.6; }
+  .st-label { font-size: 0.85rem; margin: 14px 0 4px; color: #31333F; }
+  .st-input { display: block; width: 100%; border: 1px solid #d2d3d8; border-radius: 8px; padding: 8px 12px; font-size: 0.95rem; background: #fff; color: #31333F; }
+  .st-btn { display: inline-block; background: #fff; border: 1px solid #FF4B4B; color: #FF4B4B; border-radius: 8px; padding: 8px 18px; font-size: 0.9rem; font-weight: 600; margin-top: 12px; cursor: pointer; font-family: inherit; }
+  .st-btn:hover { background: #fff5f5; }
+  .st-row { display: flex; gap: 14px; }
+  .st-row > div { flex: 1; min-width: 0; }
+  .st-hint { font-size: 11px; color: #8a8f98; margin-top: 10px; }
+  .st-alert { border-radius: 8px; padding: 10px 14px; font-size: 0.9rem; margin: 8px 0; display: flex; align-items: center; gap: 8px; }
+  .st-alert.error { background: #fdecea; color: #b71c1c; border: 1px solid #f5c6cb; }
+
+  /* ---- 사이드바가 있는 목업 (즐겨찾기 실습용) ---- */
+  .st-mock-flex { display: flex; }
+  .st-sidebar-mock { width: 160px; flex-shrink: 0; background: #f0f2f6; padding: 16px 14px; border-right: 1px solid #e6e6e6; font-size: 0.85rem; }
+  .st-sidebar-mock .sb-title { font-weight: 700; margin-bottom: 10px; }
+  .st-sidebar-mock .fav-btn {
+    display: block; width: 100%; text-align: left; background: #fff; border: 1px solid #d2d3d8;
+    border-radius: 6px; padding: 6px 10px; margin-bottom: 6px; font-size: 0.8rem; color: #31333F; cursor: pointer; font-family: inherit;
+  }
+  .st-sidebar-mock .fav-btn:hover { background: #fff5f5; border-color: #FF4B4B; color: #FF4B4B; }
+  .st-mock-flex .st-mock-body { flex: 1; }
+
+  /* ---- 메뉴 카드 그리드 (디자인 개선 실습용) ---- */
+  .meal-card-grid { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .meal-card { flex: 1; min-width: 120px; border: 1px solid #e6e6e6; border-radius: 8px; padding: 12px 14px; background: #fafbfc; }
+  .meal-card .mc-name { font-weight: 600; font-size: 0.92rem; }
+  .meal-card .mc-cal { font-size: 0.78rem; color: #8a8f98; margin-top: 4px; }
+
+  /* ---- 주간 급식 그리드 (캐싱 실습용) ---- */
+  .week-grid { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .week-grid > div { flex: 1; min-width: 90px; border: 1px solid #e6e6e6; border-radius: 8px; padding: 10px 10px; background: #fafbfc; }
+  .week-grid .day-label { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; }
+  .week-grid .dish { font-size: 0.76rem; color: #31333F; line-height: 1.5; }
+  .cache-compare { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 13.5px; }
+  .cache-compare th, .cache-compare td { border: 1px solid var(--border); padding: 8px 12px; text-align: center; }
+  .cache-compare th { background: #f4f6f8; font-weight: 600; }
+  .cache-compare td:first-child { text-align: left; font-weight: 600; background: #f9fafb; }
+  .cache-compare td.before { color: #b71c1c; }
+  .cache-compare td.after { color: var(--accent); font-weight: 600; }
+
+  /* ---- 에러 트레이스 표시 (result-box 재활용) ---- */
+  .result-box {
+    border: 1px dashed var(--border); border-radius: 8px;
+    padding: 14px 18px; margin: 12px 0 20px; background: #fafbfc;
+  }
+  .result-box .tag { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .result-box pre { background: transparent; color: #b71c1c; padding: 0; margin: 0; font-size: 13px; }
+
+  @media (max-width: 600px) {
+    .container { padding: 24px 16px 80px; }
+    header.top h1 { font-size: 22px; }
+    h3.sub { font-size: 15.5px; }
+    .flow { flex-direction: column; }
+    .st-mock-flex { flex-direction: column; }
+    .st-sidebar-mock { width: 100%; border-right: none; border-bottom: 1px solid #e6e6e6; }
+  }
+
+  html { scroll-behavior: smooth; }
+  #progressbar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); width: 0%; z-index: 999; transition: width .1s linear; }
+  .back-to-top {
+    position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%;
+    background: var(--accent); color: #fff; border: none; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity .2s ease, transform .2s ease; z-index: 998;
+  }
+  .back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .back-to-top:hover { filter: brightness(1.1); }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media print {
+    body { font-size: 12px; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .back-to-top, #progressbar, .stepnav { display: none !important; }
+    details > *:not(summary) { display: block !important; }
+  }
+</style>
+</head>
+<body>
+<div id="progressbar"></div>
+<button class="back-to-top" id="backToTop" aria-label="맨 위로">↑</button>
+<div class="container">
+
+  <div class="stepnav">
+    <a href="index.html">🏠 메인</a>
+    <a href="해커톤_Step0_개발환경준비.html">Step0</a>
+    <a href="해커톤_Step1_API기초.html">Step1</a>
+    <a href="해커톤_Step2_나이스API_급식데이터.html">Step2</a>
+    <a href="해커톤_Step3_Streamlit기초.html">Step3</a>
+    <a href="해커톤_Step4_Streamlit배포.html">Step4</a>
+    <a href="해커톤_Step5_바이브코딩.html" class="current">Step5</a>
+  </div>
+
+  <header class="top">
+    <div class="eyebrow">해커톤 · 데이터 분석 수업자료</div>
+    <h1>Step5. 바이브코딩으로 내 앱 확장하기</h1>
+    <p>Step4까지 완성해 배포한 급식알리미를 AI 코딩 도구와 함께 확장한다. 이제부터는 문법을 하나하나 직접 치는 대신, AI에게 정확하게 요청하고 결과를 검증하는 방식으로 개발한다.</p>
+  </header>
+
+  <h3 class="sub"><span class="num">01</span>바이브코딩이란 무엇인가</h3>
+  <div class="problem-box">
+    지금까지는 원하는 기능을 머릿속으로 그리고, 문법 하나하나를 직접 코드로 옮겼다. <strong>바이브코딩</strong>은 원하는 결과를 AI에게 구체적인 말로 설명하고, AI가 만들어준 코드를 이해하고 검증하며 적용하는 개발 방식이다. 타이핑을 줄여주는 게 아니라, "정확하게 요청하는 능력"이 새로운 핵심 역량이 된다는 점이 다르다.
+  </div>
+  <div class="flow">
+    <div class="box"><div class="role">나</div>프롬프트 작성</div>
+    <div class="arrow"><span class="line">&#8594;</span>구체적인 요청</div>
+    <div class="box"><div class="role">AI</div>코드 생성</div>
+    <div class="arrow"><span class="line">&#8594;</span>실행·확인</div>
+    <div class="box"><div class="role">나</div>이해·검증·적용</div>
+  </div>
+  <div class="note">
+    <div class="tag">Step1과 같은 원리</div>
+    Step1에서 본 API의 요청-응답 구조와 닮았다. 모호한 요청을 보내면 모호한 응답이 오듯, 프롬프트가 구체적이지 않으면 AI도 내가 원하는 것과 다른 코드를 준다.
+  </div>
+
+  <h3 class="sub"><span class="num">02</span>실습 준비</h3>
+  <ol class="steps">
+    <li>사용할 AI 코딩 도구(Cursor, Claude, ChatGPT 등)에 로그인되어 있는지 확인한다.</li>
+    <li>Step4까지 작업한 프로젝트 폴더가 VS Code에 열려 있고, GitHub 저장소와 연결된 상태인지 확인한다.</li>
+    <li>터미널에서 <code>streamlit run app.py</code>로 지금 앱이 정상 실행되는지 다시 확인한다 — 여기서부터는 이 상태를 기준으로 기능을 하나씩 추가한다.</li>
+  </ol>
+
+  <h3 class="sub"><span class="num">03</span>좋은 프롬프트 vs 나쁜 프롬프트</h3>
+  <p>AI는 내가 말한 만큼만 이해한다. 같은 목표라도 프롬프트에 따라 결과가 크게 달라진다.</p>
+  <div class="prompt-compare">
+    <div class="bad">
+      <div class="label">나쁨 ✗</div>
+      "학교 이름 즐겨찾기 기능 좀 만들어줘. 디자인도 예쁘게 해주고, 에러도 안 나게 고쳐줘."
+    </div>
+    <div class="good">
+      <div class="label">좋음 ✓</div>
+      "지금 app.py의 school_name 입력창 위에, st.session_state를 이용한 즐겨찾기 기능을 추가해줘. 즐겨찾기한 학교 이름을 사이드바에 버튼 목록으로 보여주고, 버튼을 클릭하면 입력창에 그 이름이 자동으로 채워지게 해줘."
+    </div>
+  </div>
+  <p>나쁜 프롬프트는 "예쁘게", "에러 없이"처럼 기준이 없고, 즐겨찾기·디자인·에러 수정을 한 번에 요청한다. 좋은 프롬프트는 <strong>어떤 파일의 어느 부분에, 어떤 동작을</strong> 원하는지 구체적으로 그려준다.</p>
+
+  <h3 class="sub"><span class="num">04</span>지켜야 할 두 가지 원칙</h3>
+  <div class="note">
+    <div class="tag">원칙 1 · 원인부터 물어보기</div>
+    에러가 나면 "고쳐줘" 대신 <strong>"이 에러가 왜 났는지 먼저 설명해줘"</strong>라고 요청한다. 원인을 이해해야 다음에 비슷한 에러를 스스로 해결할 수 있다.
+  </div>
+  <div class="note">
+    <div class="tag">원칙 2 · 한 번에 하나씩</div>
+    기능을 여러 개 한꺼번에 요청하지 않는다. 하나를 완성하고 <code>streamlit run app.py</code>로 실행해 확인한 뒤, 다음 요청으로 넘어간다.
+  </div>
+
+  <h3 class="sub"><span class="num">05</span>실습① 즐겨찾기 기능 추가</h3>
+  <p>Step3에서 완성한 <code>school_name = st.text_input(...)</code> 부분에 즐겨찾기를 연결한다.</p>
+  <div class="prompt-box">
+    <div class="prompt-tag">AI에게 보낼 프롬프트</div>
+    <div class="prompt-text">"지금 app.py의 school_name 입력창 위에, st.session_state를 이용한 즐겨찾기 기능을 추가해줘. 사이드바에 즐겨찾기한 학교 이름을 버튼 목록으로 보여주고, 버튼을 클릭하면 school_name 입력창에 그 이름이 자동으로 채워지게 해줘. 입력창 옆에는 현재 입력된 이름을 즐겨찾기에 추가하는 버튼도 만들어줘."</div>
+  </div>
+  <div class="filename-tag">app.py — AI가 제안한 코드 (위젯 부분)</div>
+  <pre><code>if "favorites" not in st.session_state:
+    st.session_state.favorites = []
+if "selected_school" not in st.session_state:
+    st.session_state.selected_school = ""
+
+with st.sidebar:
+    st.write("### ⭐ 즐겨찾기")
+    for fav in st.session_state.favorites:
+        if st.button(fav):
+            st.session_state.selected_school = fav
+
+col1, col2 = st.columns(2)
+with col1:
+    school_name = st.text_input(
+        "학교 이름을 입력하세요",
+        value=st.session_state.selected_school
+    )
+with col2:
+    date = st.date_input("날짜를 선택하세요")
+
+if school_name and st.button("⭐ 즐겨찾기에 추가"):
+    if school_name not in st.session_state.favorites:
+        st.session_state.favorites.append(school_name)</code></pre>
+  <div class="code-preview">
+    <div style="flex: 0;"></div>
+    <div>
+      <div class="preview-label">브라우저 화면 — 눌러보기</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-flex">
+          <div class="st-sidebar-mock">
+            <div class="sb-title">⭐ 즐겨찾기</div>
+            <button class="fav-btn" onclick="document.getElementById('favSchoolInput').value='광명고등학교';">광명고등학교</button>
+            <button class="fav-btn" onclick="document.getElementById('favSchoolInput').value='안양여자고등학교';">안양여자고등학교</button>
+          </div>
+          <div class="st-mock-body">
+            <div class="st-label">학교 이름을 입력하세요</div>
+            <input class="st-input" id="favSchoolInput" value="광명고등학교" readonly>
+            <button class="st-btn" style="margin-top:10px;">⭐ 즐겨찾기에 추가</button>
+            <div class="st-hint">(사이드바 버튼을 눌러보면 입력창이 바뀐다)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="note">
+    <div class="tag">이해하고 넘어가기</div>
+    <code>st.session_state</code>는 버튼을 누르는 등 화면이 다시 실행돼도 값이 사라지지 않고 유지되는 저장 공간이다. Step3에서 본 것처럼 위젯 값이 바뀔 때마다 스크립트 전체가 다시 실행되기 때문에, 즐겨찾기 목록처럼 계속 남아있어야 하는 값은 <code>session_state</code>에 담아둔다.
+  </div>
+
+  <h3 class="sub"><span class="num">06</span>실습② 디자인 개선</h3>
+  <p>지금은 메뉴를 <code>st.write()</code>로 한 줄씩 나열한다. 카드 형태로 바꿔서 칼로리 정보(<code>CAL_INFO</code>, Step2에서 이미 응답에 들어있던 값)도 함께 보여준다.</p>
+  <div class="prompt-box">
+    <div class="prompt-tag">AI에게 보낼 프롬프트</div>
+    <div class="prompt-text">"메뉴를 for문으로 한 줄씩 출력하는 부분을, st.columns를 이용해 메뉴별 카드 형태로 보여주도록 바꿔줘. 각 카드에는 메뉴 이름과 함께 CAL_INFO 값도 작게 표시해줘."</div>
+  </div>
+  <div class="filename-tag">app.py — AI가 제안한 코드 (결과 표시 부분)</div>
+  <pre><code>cols = st.columns(len(menu))
+for col, dish in zip(cols, menu):
+    with col:
+        st.markdown(f"**{dish}**")
+        st.caption(cal_info)</code></pre>
+  <div class="code-preview">
+    <div style="flex: 0;"></div>
+    <div>
+      <div class="preview-label">브라우저 화면</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-label" style="margin-top:0;">광명고등학교 20250915 급식</div>
+          <div class="meal-card-grid">
+            <div class="meal-card"><div class="mc-name">백미밥</div><div class="mc-cal">820.5 Kcal</div></div>
+            <div class="meal-card"><div class="mc-name">콩나물국</div><div class="mc-cal">820.5 Kcal</div></div>
+            <div class="meal-card"><div class="mc-name">제육볶음</div><div class="mc-cal">820.5 Kcal</div></div>
+            <div class="meal-card"><div class="mc-name">연근조림</div><div class="mc-cal">820.5 Kcal</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="note">
+    <div class="tag">관찰 포인트</div>
+    요청 전/후 코드를 비교해보고, AI가 <code>st.write()</code> 대신 <code>st.columns</code>·<code>st.caption</code>을 쓴 이유를 스스로 설명해본다. 이해 안 되는 부분(예: <code>zip(cols, menu)</code>가 정확히 무슨 일을 하는지)이 있다면 "이 줄이 뭐 하는 거야?"라고 되묻는다 — 04번의 원칙 그대로다.
+  </div>
+
+  <h3 class="sub"><span class="num">07</span>실습③ 에러가 나면 원인부터</h3>
+  <p>주말이나 방학처럼 급식이 없는 날짜를 조회해본다.</p>
+  <div class="result-box">
+    <div class="tag">주말 날짜로 조회하면(터미널)</div>
+    <pre>Traceback (most recent call last):
+  File "app.py", line 24, in get_meal
+    return data["mealServiceDietInfo"][1]["row"][0]["DDISH_NM"]
+IndexError: list index out of range</pre>
+  </div>
+  <p>Step2에서 본 것처럼 나이스 API 응답은 <code>[head, row]</code> 구조다. 급식이 없는 날은 <code>row</code> 자체가 통째로 빠진 채 <code>head</code>만 돌아오기 때문에, 리스트에 <code>[1]</code> 인덱스가 존재하지 않는다.</p>
+  <div class="prompt-box">
+    <div class="prompt-tag">AI에게 보낼 프롬프트 (①원칙 적용)</div>
+    <div class="prompt-text">"get_meal 함수에서 주말 날짜를 조회하면 'IndexError: list index out of range' 에러가 나. 이 에러가 왜 발생하는지 원인을 먼저 설명해주고, 급식이 없는 날에는 에러 대신 None을 반환하도록 고쳐줘."</div>
+  </div>
+  <div class="filename-tag">app.py — 수정된 get_meal()</div>
+  <pre><code>def get_meal(office_code, school_code, date):
+    url = "https://open.neis.go.kr/hub/mealServiceDietInfo"
+    params = {
+        "KEY": API_KEY, "Type": "json",
+        "pIndex": 1, "pSize": 5,
+        "ATPT_OFCDC_SC_CODE": office_code,
+        "SD_SCHUL_CODE": school_code,
+        "MLSV_YMD": date
+    }
+    data = requests.get(url, params=params).json()
+    if len(data["mealServiceDietInfo"]) < 2:
+        return None
+    return data["mealServiceDietInfo"][1]["row"][0]["DDISH_NM"]</code></pre>
+  <div class="code-preview">
+    <div style="flex: 0;"></div>
+    <div>
+      <div class="preview-label">브라우저 화면 — 주말 날짜로 조회</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-alert error">🚫 급식 정보를 찾을 수 없습니다. 날짜나 학교 이름을 다시 확인해주세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="note">
+    <div class="tag">이해하고 넘어가기</div>
+    <code>get_meal()</code>이 <code>None</code>을 반환하면, Step3에서 이미 만들어둔 <code>if raw_menu: ... else: st.error(...)</code> 분기가 그대로 작동해서 자연스럽게 안내 메시지가 뜬다. 새 코드를 추가하지 않고도, 이전에 짠 코드 구조 덕분에 문제가 해결됐다.
+  </div>
+
+  <h3 class="sub"><span class="num">08</span>실습④ 여러 날짜 한 번에 보기 — 무거워지는 앱</h3>
+  <p>지금은 하루치 급식만 조회한다. 이번엔 <strong>이번 주(월~금) 급식을 한 번에 비교해서 보여주는 기능</strong>을 추가한다. 이 기능부터는 API를 여러 번 호출해야 해서, 캐싱이 왜 필요한지 직접 느껴볼 수 있다.</p>
+  <div class="prompt-box">
+    <div class="prompt-tag">AI에게 보낼 프롬프트</div>
+    <div class="prompt-text">"app.py에 '이번 주 급식 보기' 버튼을 추가해줘. 누르면 선택한 날짜가 속한 주의 월요일부터 금요일까지 날짜를 계산해서, 각 날짜의 급식을 get_meal 함수로 순서대로 조회하고, st.columns로 요일별로 나란히 보여줘."</div>
+  </div>
+  <div class="filename-tag">app.py — AI가 제안한 코드</div>
+  <pre><code>import datetime
+
+def get_week_dates(date):
+    monday = date - datetime.timedelta(days=date.weekday())
+    return [monday + datetime.timedelta(days=i) for i in range(5)]
+
+if st.button("이번 주 급식 보기"):
+    school_code = find_school(office_code, school_name)
+    week_dates = get_week_dates(date)
+
+    cols = st.columns(5)
+    for col, d in zip(cols, week_dates):
+        with col:
+            st.write(f"**{d.strftime('%m/%d')} ({'월화수목금'[d.weekday()]})**")
+            with st.spinner("불러오는 중..."):
+                raw = get_meal(office_code, school_code, d.strftime("%Y%m%d"))
+            if raw:
+                for dish in clean_menu(raw):
+                    st.caption(dish)
+            else:
+                st.caption("급식 없음")</code></pre>
+  <div class="code-preview">
+    <div style="flex: 0;"></div>
+    <div>
+      <div class="preview-label">브라우저 화면</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="week-grid">
+            <div><div class="day-label">09/15 (월)</div><div class="dish">백미밥</div><div class="dish">콩나물국</div><div class="dish">제육볶음</div></div>
+            <div><div class="day-label">09/16 (화)</div><div class="dish">현미밥</div><div class="dish">미역국</div><div class="dish">고등어구이</div></div>
+            <div><div class="day-label">09/17 (수)</div><div class="dish">잡곡밥</div><div class="dish">순두부찌개</div><div class="dish">닭갈비</div></div>
+            <div><div class="day-label">09/18 (목)</div><div class="dish">백미밥</div><div class="dish">된장국</div><div class="dish">돈까스</div></div>
+            <div><div class="day-label">09/19 (금)</div><div class="dish">볶음밥</div><div class="dish">계란국</div><div class="dish">탕수육</div></div>
+          </div>
+          <div class="st-hint">(요일마다 API가 한 번씩, 학교 검색까지 총 6번 호출된다)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="danger">
+    <div class="tag">체감해보기 — 성능 문제 확인</div>
+    "이번 주 급식 보기"를 누를 때마다 <code>find_school</code>이 다시 호출되고, 요일마다 <code>get_meal</code>도 새로 호출된다. 학교 이름과 날짜가 그대로인데도 <strong>매번 API를 6번씩</strong> 새로 부른다. 같은 학교, 같은 주를 다시 눌러봐도 로딩이 똑같이 오래 걸리는 것을 확인해본다 — 이 앱을 여러 명이 동시에 쓰면 나이스 서버에도 부담을 준다.
+  </div>
+
+  <h3 class="sub"><span class="num">09</span>실습⑤ 캐싱으로 성능 개선하기</h3>
+  <p>Step2 끝에서 미뤄뒀던 이야기다 — "매번 검색하는 건 비효율적이지만, 캐싱은 Streamlit에 익숙해진 뒤 다룬다"고 했던 바로 그 부분을 지금 AI와 함께 해결한다.</p>
+  <div class="prompt-box">
+    <div class="prompt-tag">AI에게 보낼 프롬프트</div>
+    <div class="prompt-text">"find_school 함수랑 get_meal 함수에 캐싱을 추가해줘. 같은 학교 이름이나 같은 날짜로 다시 조회할 때는 API를 다시 부르지 않고 저장해둔 결과를 바로 보여주면 좋겠어."</div>
+  </div>
+  <div class="filename-tag">app.py — 함수 정의 위에 한 줄씩 추가</div>
+  <pre><code>@st.cache_data
+def find_school(office_code, school_name):
+    ...
+
+@st.cache_data
+def get_meal(office_code, school_code, date):
+    ...</code></pre>
+  <div class="note">
+    <div class="tag">이해하고 넘어가기</div>
+    <code>@st.cache_data</code>는 함수를 실행하기 전에 <strong>같은 인자</strong>로 이미 실행한 적이 있는지 먼저 확인한다. 있다면 함수를 다시 실행하지 않고 저장해둔 결과를 그대로 돌려준다. Step3에서 위젯 값이 바뀔 때마다 스크립트 전체가 다시 실행된다고 배웠는데, 캐싱된 함수만큼은 인자가 같으면 그 재실행 안에서도 실제 호출을 건너뛴다.
+  </div>
+  <table class="cache-compare">
+    <tr><th></th><th>캐싱 전</th><th>캐싱 후</th></tr>
+    <tr><td>같은 학교 재조회</td><td class="before">find_school API 재호출</td><td class="after">저장된 학교 코드 즉시 사용</td></tr>
+    <tr><td>같은 주 재조회</td><td class="before">get_meal 5번 재호출</td><td class="after">저장된 급식 데이터 즉시 사용</td></tr>
+    <tr><td>체감 속도</td><td class="before">누를 때마다 로딩</td><td class="after">첫 조회만 로딩, 이후 즉시</td></tr>
+  </table>
+  <div class="problem-box">
+    <strong>직접 확인하기</strong> — 캐싱을 추가한 뒤 같은 학교·같은 주를 다시 조회해본다. 처음 조회할 때만 <code>st.spinner</code>가 잠깐 보이고, 두 번째부터는 스피너 없이 바로 결과가 뜨면 캐싱이 정상 동작하는 것이다.
+  </div>
+  <div class="note">
+    <div class="tag">참고 — 캐시가 오래된 값을 보여준다면</div>
+    <code>@st.cache_data</code>는 기본적으로 앱이 재시작되기 전까지 결과를 계속 저장해둔다. 급식 메뉴가 실제로 바뀌었는데 예전 값이 보인다면, 화면 오른쪽 위 메뉴에서 <strong>Clear cache</strong>를 누르거나, <code>@st.cache_data(ttl=3600)</code>처럼 유효 시간(초)을 정해줄 수 있다.
+  </div>
+
+  <h3 class="sub"><span class="num">10</span>실습⑥ 설명 요청 — AI가 준 코드 이해하기</h3>
+  <p>지금까지는 AI가 준 코드를 실행만 해봤다. 이번에는 05번에서 만든 즐겨찾기 코드 중 <code>for fav in st.session_state.favorites:</code>와 그 안의 <code>if st.button(fav):</code> 부분이 정확히 언제, 어떤 순서로 실행되는지 AI에게 설명을 요청해본다.</p>
+  <div class="prompt-box">
+    <div class="prompt-tag">AI에게 보낼 프롬프트</div>
+    <div class="prompt-text">"방금 만든 즐겨찾기 코드에서 for fav in st.session_state.favorites: 부분과 그 안의 if st.button(fav): 부분이 정확히 어떤 순서로, 언제 실행되는지 한 줄씩 설명해줘. 예시를 들어서 설명해줘."</div>
+  </div>
+  <div class="result-box">
+    <div class="tag">AI의 설명 (요약)</div>
+    <pre style="color: var(--fg);">1. 사이드바가 그려질 때, 저장된 즐겨찾기 이름 개수만큼 버튼이 하나씩 만들어진다.
+2. 사용자가 버튼 중 하나를 클릭하면, Streamlit은 위젯 값이 바뀐 것으로 보고
+   스크립트 전체를 처음부터 다시 실행한다 (Step3 01번 참고).
+3. 다시 실행되는 동안 st.session_state.selected_school 값이 방금 클릭한
+   학교 이름으로 바뀌어 있어서, 그 아래 text_input의 기본값이 그 이름으로 채워진다.</pre>
+  </div>
+  <div class="note">
+    <div class="tag">재사용 가능한 질문 패턴</div>
+    코드를 이해할 때 아래 세 가지 질문은 어떤 코드에나 그대로 써먹을 수 있다.
+    <ul style="margin: 8px 0 0; padding-left: 20px;">
+      <li>"이 줄이 정확히 뭘 하는 거야?"</li>
+      <li>"이 코드가 실행되는 순서를 예시를 들어서 설명해줘"</li>
+      <li>"이 옵션(파라미터)을 빼면 어떻게 달라져?"</li>
+    </ul>
+  </div>
+  <div class="problem-box">
+    <strong>직접 해보기</strong> — 06번의 <code>zip(cols, menu)</code> 줄을 골라 같은 방식으로 AI에게 설명을 요청해보고, 이해한 내용을 짝에게 AI의 설명을 보지 않고 자기 말로 설명해본다.
+  </div>
+
+  <h3 class="sub"><span class="num">11</span>AI 결과물, 그대로 믿지 않기</h3>
+  <p>AI가 준 코드나 설명이 항상 맞는 것은 아니다. 실제로 한번 확인해보자.</p>
+  <div class="filename-tag">AI가 제안한 코드 (그대로 복사하면 안 되는 예시)</div>
+  <pre><code>API_KEY = "a3f9c8d2e1b7f0429c88..."   # AI가 직접 써준 값
+
+def get_meal(office_code, school_code, date):
+    ...</code></pre>
+  <div class="danger">
+    <div class="tag">찾아보기 — 이 코드의 문제는?</div>
+    AI는 "일단 실행되는 코드"를 최우선으로 만들기 때문에, Step4에서 <code>st.secrets</code>로 분리했던 인증키를 다시 코드에 그대로 적어서 줄 때가 있다. 이 코드를 그대로 GitHub에 Commit하면 인증키가 다시 공개된다. AI가 준 코드라도 <strong>Step4의 규칙(인증키는 코드에 적지 않는다)</strong>이 지켜졌는지는 내가 직접 확인해야 한다.
+  </div>
+  <p>이 외에도 AI와 작업할 때 스스로 점검해야 할 것들이 있다.</p>
+  <table>
+    <tr><th>할루시네이션</th><td>AI는 존재하지 않는 함수나 틀린 설명도 자신 있게 말할 수 있다. 설명을 들었다고 끝내지 말고, 실행해서 직접 결과를 확인한다.</td></tr>
+    <tr><th>보안</th><td>인증키·개인정보가 코드에 그대로 남아있지 않은지 Commit 전에 한 번 더 확인한다.</td></tr>
+    <tr><th>저작권</th><td>AI가 제안한 코드 조각이 특정 오픈소스 프로젝트를 그대로 가져온 것일 수 있다. 공개 저장소에 올릴 코드라면 라이선스 문제가 없는지 확인한다.</td></tr>
+  </table>
+  <ol class="steps">
+    <li>인증키·비밀번호가 코드에 그대로 적혀 있지 않은가 (<code>st.secrets</code>를 쓰고 있는가)</li>
+    <li>실행해봤을 때 AI의 설명대로 실제로 동작하는가</li>
+    <li>처음 보는 라이브러리를 쓴다면, 정말 설치돼 있는지 <code>pip list</code>로 확인했는가</li>
+    <li>공개 저장소에 올릴 코드라면, 가져온 코드 조각에 라이선스 문제가 없는가</li>
+  </ol>
+
+  <h3 class="sub"><span class="num">12</span>확장 아이디어 — 시간이 남는다면</h3>
+  <table>
+    <tr><th>학사일정 함께 보여주기</th><td>나이스 <code>SchoolSchedule</code> API를 추가로 호출해서, 오늘 학교 행사도 급식과 함께 보여준다.</td></tr>
+    <tr><th>알레르기 필터</th><td>알레르기 유발 식품 번호(예: 5.6.13)를 입력하면 해당 메뉴에 ⚠️ 표시를 붙인다.</td></tr>
+    <tr><th>여러 학교 비교</th><td>즐겨찾기한 학교 여러 곳의 급식을 한 화면에 나란히 보여준다.</td></tr>
+    <tr><th>일주일 칼로리 그래프</th><td><code>CAL_INFO</code> 값을 모아 <code>st.line_chart</code>로 일주일 칼로리 변화를 보여준다.</td></tr>
+    <tr><th>다크모드 토글</th><td>Streamlit 테마 설정을 이용해 다크모드를 켜고 끌 수 있게 만든다.</td></tr>
+  </table>
+
+  <h3 class="sub"><span class="num">13</span>자주 만나는 오류</h3>
+  <table>
+    <tr><th>모르는 함수/라이브러리가 섞인 코드를 줌</th><td>실행해서 에러 메시지를 확인한 뒤, "이 라이브러리가 설치돼 있어야 하는지, pip install이 필요한지 알려줘"라고 되묻는다.</td></tr>
+    <tr><th>코드를 통째로 바꿔서 기존 기능이 사라짐</th><td>04번 "한 번에 하나씩" 원칙 위반. 직전 버전으로 되돌리고, 더 작은 단위로 다시 요청한다.</td></tr>
+    <tr><th>session_state 관련 오류</th><td>위젯의 <code>key</code>와 <code>session_state</code> 키 이름이 겹칠 때 자주 발생한다. AI에게 "이 키 이름이 왜 충돌하는지" 설명을 요청한다.</td></tr>
+    <tr><th>고친 코드가 배포된 앱에 반영 안 됨</th><td>로컬에서만 수정하고 GitHub에는 다시 올리지 않은 경우다. Step4의 05~06번대로 변경된 <code>app.py</code>를 다시 Commit한다.</td></tr>
+    <tr><th>캐싱했더니 예전 급식이 계속 보임</th><td>09번 참고 — 오른쪽 위 메뉴의 Clear cache를 누르거나, <code>@st.cache_data(ttl=...)</code>로 유효 시간을 정해준다.</td></tr>
+  </table>
+
+  <div class="recap">
+    <h3>정리</h3>
+    <ul>
+      <li>AI에게는 "어느 파일의 어느 부분에, 무엇을" 원하는지 구체적으로 설명해야 원하는 코드를 받는다.</li>
+      <li>에러가 나면 고쳐달라고 하기 전에 원인부터 물어본다.</li>
+      <li>기능은 한 번에 하나씩 요청하고, 매번 실행해서 확인한다.</li>
+      <li>같은 입력에 같은 API를 반복 호출하는 부분은 <code>@st.cache_data</code>로 캐싱해 속도와 서버 부담을 함께 줄인다.</li>
+      <li>이해 안 되는 코드는 "이 줄이 뭘 하는 거야?"라고 되물어서 내 말로 설명할 수 있을 때까지 확인한다.</li>
+      <li>AI가 준 코드라도 결국 내가 이해하고 책임지는 내 코드다 — 특히 인증키가 그대로 남아있지 않은지는 Commit 전에 직접 확인한다.</li>
+    </ul>
+  </div>
+
+  <footer class="next">
+    <strong>여기까지</strong> — 급식알리미가 완성됐다. Step4에서 받은 <code>streamlit.app</code> 배포 링크를 다시 확인하고, 오늘 무엇을 만들고 무엇을 배웠는지 짧게 발표를 준비하며 마무리한다. 수고했다!
+  </footer>
+
+</div>
+<script>
+  document.querySelectorAll('.steps').forEach(function (list) {
+    var items = list.querySelectorAll('li');
+    var total = items.length;
+    var progress = document.createElement('div');
+    progress.className = 'steps-progress';
+    function update() {
+      var done = list.querySelectorAll('li.done').length;
+      progress.textContent = done + ' / ' + total + ' 완료';
+    }
+    list.parentNode.insertBefore(progress, list);
+    items.forEach(function (li) {
+      li.addEventListener('click', function () {
+        li.classList.toggle('done');
+        update();
+      });
+    });
+    update();
+  });
+
+  var revealEls = document.querySelectorAll('.container > *:not(.stepnav):not(header.top):not(footer.next)');
+  revealEls.forEach(function (el) { el.classList.add('reveal'); });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(function (el) { io.observe(el); });
+
+  var bar = document.getElementById('progressbar');
+  function updateBar() {
+    var h = document.documentElement;
+    var scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = (isFinite(scrolled) ? scrolled : 0) + '%';
+  }
+  window.addEventListener('scroll', updateBar);
+  updateBar();
+
+  var backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', function () {
+    backToTop.classList.toggle('show', window.scrollY > 400);
+  });
+  backToTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+<script src="code-highlight.js"></script>
+</body>
+</html>

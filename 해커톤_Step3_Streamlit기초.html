@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해커톤 수업자료 | Step3. Streamlit으로 화면 만들기</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #5a6472;
+    --accent: #1d6f5c;
+    --accent-bg: #eaf4f1;
+    --border: #dfe3e8;
+    --code-bg: #1e2530;
+    --code-fg: #dbe4ef;
+    --warn-bg: #fdf3e7;
+    --warn-border: #e8b465;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.7;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 24px 100px; }
+  .stepnav { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stepnav a {
+    text-decoration: none;
+    color: var(--muted);
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font-size: 13px;
+    transition: all .15s ease;
+  }
+  .stepnav a.current { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .stepnav a:hover:not(.current) { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  header.top { border-bottom: 2px solid var(--fg); padding-bottom: 20px; margin-bottom: 36px; }
+  header.top .eyebrow {
+    font-size: 13px; letter-spacing: 0.06em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  header.top h1 { font-size: 28px; margin: 0 0 10px; }
+  header.top p { color: var(--muted); margin: 0; font-size: 15px; }
+
+  h3.sub {
+    font-size: 17px; margin: 40px 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h3.sub .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 22px; padding: 0 5px; border-radius: 6px;
+    background: var(--fg); color: #fff; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.03em; flex-shrink: 0;
+  }
+  p { margin: 10px 0; }
+
+  pre {
+    background: var(--code-bg); color: var(--code-fg);
+    padding: 18px 20px; border-radius: 8px; overflow-x: auto;
+    font-size: 13.5px; line-height: 1.65; margin: 12px 0 20px;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  pre:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+  code { font-family: "D2Coding", "Consolas", "SF Mono", monospace; }
+  .filename-tag {
+    font-family: "D2Coding", "Consolas", monospace;
+    font-size: 12.5px; color: var(--muted);
+    margin-bottom: -8px; margin-top: 12px;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 24px; font-size: 13.5px; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f4f6f8; font-weight: 600; width: 26%; }
+  td code { font-size: 12.5px; background: #f1f3f5; padding: 1px 5px; border-radius: 3px; }
+  table tr:hover td { background: var(--accent-bg); }
+
+  .steps { counter-reset: step; padding: 0; margin: 14px 0 22px; list-style: none; }
+  .steps li {
+    counter-increment: step; position: relative; cursor: pointer;
+    padding-left: 34px; margin-bottom: 10px; font-size: 14.5px;
+    transition: opacity .15s ease;
+  }
+  .steps li:hover { opacity: 0.85; }
+  .steps li.done { opacity: 0.5; text-decoration: line-through; }
+  .steps li.done::before { content: "✓"; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 0;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .steps-progress { font-size: 12px; color: var(--muted); font-weight: 600; margin: 4px 0 10px; }
+
+  .note {
+    background: var(--warn-bg); border: 1px solid var(--warn-border);
+    border-radius: 8px; padding: 14px 18px; font-size: 14px; margin: 18px 0;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .note:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+  .note .tag { font-weight: 700; font-size: 12.5px; color: #8a5a12; margin-bottom: 6px; letter-spacing: 0.03em; }
+
+  .recap { border-top: 2px solid var(--fg); padding-top: 16px; margin-top: 36px; }
+  .recap h3 { font-size: 15px; margin: 0 0 10px; }
+  .recap ul { margin: 0; padding-left: 20px; font-size: 14px; }
+  .recap li { margin-bottom: 5px; }
+
+  footer.next {
+    border: 1.5px dashed var(--border); border-radius: 8px;
+    padding: 18px 22px; font-size: 14px; color: var(--muted); margin-top: 40px;
+  }
+  footer.next strong { color: var(--fg); }
+  footer.next a { color: var(--accent); }
+
+  /* ---- 코드 ↔ 화면 매칭 레이아웃 ---- */
+  .code-preview { display: flex; gap: 18px; margin: 14px 0 26px; align-items: stretch; }
+  .code-preview > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .code-preview pre { margin: 0; flex: 1; }
+  .preview-label {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;
+  }
+  @media (max-width: 760px) {
+    .code-preview { flex-direction: column; }
+  }
+
+  /* ---- Streamlit 화면 목업 ---- */
+  .st-mock-window {
+    border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden;
+    background: #fff; height: 100%;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .st-mock-window:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+  .st-mock-bar {
+    background: #f0f2f6; padding: 8px 12px; display: flex; gap: 6px;
+    border-bottom: 1px solid #e6e6e6;
+  }
+  .st-mock-bar span { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .st-mock-bar .r { background: #ff5f57; }
+  .st-mock-bar .y { background: #febc2e; }
+  .st-mock-bar .g { background: #28c840; }
+  .st-mock-body {
+    padding: 22px 24px;
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #31333F;
+  }
+  .st-title { font-size: 1.8rem; font-weight: 700; margin: 0 0 10px; line-height: 1.25; }
+  .st-write { font-size: 1rem; margin: 6px 0; line-height: 1.6; }
+  .st-label { font-size: 0.85rem; margin: 14px 0 4px; color: #31333F; }
+  .st-input {
+    display: block; width: 100%; border: 1px solid #d2d3d8; border-radius: 8px;
+    padding: 8px 12px; font-size: 0.95rem; background: #fff; color: #31333F;
+  }
+  .st-btn {
+    display: inline-block; background: #fff; border: 1px solid #FF4B4B; color: #FF4B4B;
+    border-radius: 8px; padding: 8px 18px; font-size: 0.9rem; font-weight: 600;
+    margin-top: 12px; cursor: pointer; font-family: inherit;
+  }
+  .st-btn:hover { background: #fff5f5; }
+  .st-list { margin: 10px 0 0; padding-left: 20px; }
+  .st-list li { margin-bottom: 4px; }
+  .btn-demo-result { display: none; margin-top: 14px; font-size: 0.95rem; }
+  .btn-demo-result.show { display: block; }
+  .st-hint { font-size: 11px; color: #8a8f98; margin-top: 10px; }
+
+  /* ---- 06 이후 추가 위젯 목업 ---- */
+  .st-row { display: flex; gap: 14px; }
+  .st-row > div { flex: 1; min-width: 0; }
+
+  .st-spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid #e0e0e0; border-top-color: #FF4B4B; border-radius: 50%;
+    animation: st-spin 0.8s linear infinite; vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes st-spin { to { transform: rotate(360deg); } }
+
+  .st-alert {
+    border-radius: 8px; padding: 10px 14px; font-size: 0.9rem; margin: 8px 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .st-alert.success { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
+  .st-alert.error { background: #fdecea; color: #b71c1c; border: 1px solid #f5c6cb; }
+
+  .st-expander { border: 1px solid #e6e6e6; border-radius: 8px; overflow: hidden; margin: 10px 0; }
+  .st-expander summary {
+    padding: 10px 14px; background: #f7f8fa; cursor: pointer; font-size: 0.9rem;
+    font-weight: 600; list-style: none; display: flex; align-items: center; gap: 6px;
+    color: #31333F;
+  }
+  .st-expander summary::-webkit-details-marker { display: none; }
+  .st-expander summary::before { content: "▸"; font-size: 11px; transition: transform .15s ease; }
+  .st-expander[open] summary::before { transform: rotate(90deg); }
+  .st-expander .st-expander-body { padding: 12px 14px; font-size: 0.9rem; border-top: 1px solid #e6e6e6; }
+
+  .st-browser-tab {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #dee1e6; padding: 6px 14px; border-radius: 8px 8px 0 0;
+    font-size: 12px; color: #3c4043; margin-left: 12px;
+  }
+
+  .balloon-demo-wrap { position: relative; overflow: hidden; min-height: 60px; }
+  .balloon-demo { position: absolute; inset: 0; pointer-events: none; }
+  .balloon-demo span { position: absolute; bottom: -20px; font-size: 22px; opacity: 0; }
+  .balloon-demo.pop span { animation: balloon-float 1.8s ease-in forwards; }
+  .balloon-demo span:nth-child(1) { left: 8%;  animation-delay: 0s; }
+  .balloon-demo span:nth-child(2) { left: 27%; animation-delay: .12s; }
+  .balloon-demo span:nth-child(3) { left: 47%; animation-delay: .26s; }
+  .balloon-demo span:nth-child(4) { left: 66%; animation-delay: .08s; }
+  .balloon-demo span:nth-child(5) { left: 85%; animation-delay: .2s; }
+  @keyframes balloon-float {
+    0%   { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-200px); opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 24px 16px 80px; }
+    header.top h1 { font-size: 22px; }
+    h3.sub { font-size: 15.5px; }
+  }
+
+  html { scroll-behavior: smooth; }
+  #progressbar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); width: 0%; z-index: 999;
+    transition: width .1s linear;
+  }
+  .back-to-top {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--accent); color: #fff; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    opacity: 0; pointer-events: none; transform: translateY(10px);
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 998;
+  }
+  .back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .back-to-top:hover { filter: brightness(1.1); }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media print {
+    body { font-size: 12px; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .back-to-top, #progressbar, .stepnav { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="progressbar"></div>
+<button class="back-to-top" id="backToTop" aria-label="맨 위로">↑</button>
+<div class="container">
+
+  <div class="stepnav">
+    <a href="index.html">🏠 메인</a>
+    <a href="해커톤_Step0_개발환경준비.html">Step0</a>
+    <a href="해커톤_Step1_API기초.html">Step1</a>
+    <a href="해커톤_Step2_나이스API_급식데이터.html">Step2</a>
+    <a href="해커톤_Step3_Streamlit기초.html" class="current">Step3</a>
+    <a href="해커톤_Step4_Streamlit배포.html">Step4</a>
+    <a href="해커톤_Step5_바이브코딩.html">Step5</a>
+  </div>
+
+  <header class="top">
+    <div class="eyebrow">해커톤 · 데이터 분석 수업자료</div>
+    <h1>Step3. Streamlit으로 화면 만들기</h1>
+    <p>Step0~2에서 만든 함수를 그대로 가져와 웹 화면에 연결한다. 각 코드 옆에 실제로 어떤 화면이 뜨는지 나란히 붙여뒀다.</p>
+  </header>
+
+  <h3 class="sub"><span class="num">01</span>Streamlit이란</h3>
+  <p>지금까지 만든 함수는 터미널에서만 실행됐다. Streamlit은 같은 파이썬 코드를 웹 화면으로 바꿔주는 라이브러리다. HTML, CSS, JavaScript를 몰라도 파이썬 코드만으로 화면을 만들 수 있다.</p>
+
+  <div class="note">
+    <div class="tag">핵심 동작 원리</div>
+    Streamlit은 화면의 위젯(입력창, 버튼 등) 값이 바뀔 때마다 <code>.py</code> 파일 전체를 위에서부터 다시 실행한다.<br>
+    학교 이름을 입력하고 Enter를 치는 순간 전체 코드가 처음부터 다시 돌아간다는 뜻이다.<br>
+    이 특성 때문에 04번에서 버튼으로 실행 시점을 제어하는 방법이 필요해지고, 나중에 캐싱도 필요해진다.
+  </div>
+
+  <h3 class="sub"><span class="num">02</span>실습 준비</h3>
+  <ol class="steps">
+    <li>VS Code에서 프로젝트 폴더를 열고 가상환경을 활성화한다 (처음이면 <a href="해커톤_Step0_개발환경준비.html">Step0</a> 참고).</li>
+    <li>터미널에서 <code>pip install streamlit</code>을 실행한다.</li>
+    <li>새 파일 <code>app.py</code>를 만든다.</li>
+    <li>터미널에서 <code>streamlit run app.py</code>를 실행한다. 브라우저가 자동으로 열린다.</li>
+  </ol>
+  <div class="note">
+    <div class="tag">참고</div>
+    코드를 저장(<code>Ctrl</code>+<code>S</code>)하면 브라우저 화면이 자동으로 새로고침되지 않을 수 있다.<br>
+    그럴 땐 브라우저 우측 상단에 뜨는 <strong>Rerun</strong> 버튼을 누르면 된다.
+  </div>
+
+  <h3 class="sub"><span class="num">03</span>화면에 글자 출력하기</h3>
+  <p><code>st.title()</code>은 제목을, <code>st.write()</code>는 일반 텍스트를 화면에 출력한다.</p>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py</div>
+      <pre><code>import streamlit as st
+
+st.title("급식알리미")
+st.write("오늘 우리 학교 급식을 확인하세요.")</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 화면</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-title">급식알리미</div>
+          <div class="st-write">오늘 우리 학교 급식을 확인하세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="num">04</span>사용자 입력받기</h3>
+  <p><code>st.text_input()</code>은 텍스트 입력창을, <code>st.date_input()</code>은 날짜 선택창을 만든다. 둘 다 사용자가 입력한 값을 반환한다.</p>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py</div>
+      <pre><code>school_name = st.text_input("학교 이름을 입력하세요")
+date = st.date_input("날짜를 선택하세요")
+
+st.write(f"입력한 학교: {school_name}")</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 화면</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-label">학교 이름을 입력하세요</div>
+          <input class="st-input" value="광명고등학교" readonly>
+          <div class="st-label">날짜를 선택하세요</div>
+          <input class="st-input" value="2025/09/15" readonly>
+          <div class="st-write" style="margin-top:14px;">입력한 학교: 광명고등학교</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p>입력창 값이 바뀔 때마다 <code>01</code>에서 본 것처럼 스크립트 전체가 다시 실행되고, <code>st.write()</code>가 즉시 갱신된다.</p>
+
+  <h3 class="sub"><span class="num">05</span>버튼으로 실행 시점 제어하기</h3>
+  <p>학교 이름이나 날짜는 바뀔 때마다 바로 반영돼도 괜찮지만, API 요청처럼 시간이 걸리는 작업은 사용자가 원할 때만 실행되면 좋겠다. <code>if st.button(...):</code> 블록 안에 넣으면 버튼을 눌렀을 때만 그 안의 코드가 실행된다.</p>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py</div>
+      <pre><code>if st.button("급식 조회하기"):
+    st.write("조회 버튼을 눌렀습니다.")</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 화면 — 눌러보기</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <button class="st-btn" onclick="document.getElementById('btnDemoResult').classList.toggle('show')">급식 조회하기</button>
+          <div class="btn-demo-result" id="btnDemoResult">조회 버튼을 눌렀습니다.</div>
+          <div class="st-hint">(실제 화면처럼 눌러볼 수 있다)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="num">06</span>지금까지 배운 함수와 연결하기</h3>
+  <p>Step2에서 만든 <code>find_school()</code>, <code>get_meal()</code>, <code>clean_dish_name()</code>, <code>clean_menu()</code>를 그대로 가져와 화면에 연결한다. 교육청 코드는 아직 화면 위젯 없이 코드에 직접 적어둔다 — 07에서 selectbox로 바꾼다.</p>
+  <div class="filename-tag">app.py — 전체</div>
+  <pre><code>import streamlit as st
+import requests
+import re
+
+API_KEY = "발급받은_인증키"
+office_code = "J10"   # 경기도교육청 — 우리 학교가 속한 교육청 코드
+
+def find_school(office_code, school_name):
+    url = "https://open.neis.go.kr/hub/schoolInfo"
+    params = {
+        "KEY": API_KEY, "Type": "json",
+        "pIndex": 1, "pSize": 5,
+        "ATPT_OFCDC_SC_CODE": office_code,
+        "SCHUL_NM": school_name
+    }
+    data = requests.get(url, params=params).json()
+    school = data["schoolInfo"][1]["row"][0]
+    return school["SD_SCHUL_CODE"]
+
+def get_meal(office_code, school_code, date):
+    url = "https://open.neis.go.kr/hub/mealServiceDietInfo"
+    params = {
+        "KEY": API_KEY, "Type": "json",
+        "pIndex": 1, "pSize": 5,
+        "ATPT_OFCDC_SC_CODE": office_code,
+        "SD_SCHUL_CODE": school_code,
+        "MLSV_YMD": date
+    }
+    data = requests.get(url, params=params).json()
+    return data["mealServiceDietInfo"][1]["row"][0]["DDISH_NM"]
+
+def clean_dish_name(dish):
+    dish = re.sub(r"[\(\[].*?[\)\]]", "", dish)
+    return dish.strip("*! ")
+
+def clean_menu(raw):
+    return [clean_dish_name(d) for d in raw.split("&lt;br/&gt;")]
+
+st.title("급식알리미")
+
+school_name = st.text_input("학교 이름을 입력하세요")
+date = st.date_input("날짜를 선택하세요")
+
+if st.button("급식 조회하기"):
+    school_code = find_school(office_code, school_name)
+    date_str = date.strftime("%Y%m%d")
+    raw_menu = get_meal(office_code, school_code, date_str)
+    menu = clean_menu(raw_menu)
+
+    st.write(f"### {school_name} {date_str} 급식")
+    for dish in menu:
+        st.write(f"- {dish}")</code></pre>
+
+  <div class="code-preview">
+    <div style="flex: 0;"></div>
+    <div>
+      <div class="preview-label">브라우저 화면 — 눌러보기</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-title">급식알리미</div>
+          <div class="st-label">학교 이름을 입력하세요</div>
+          <input class="st-input" value="광명고등학교" readonly>
+          <div class="st-label">날짜를 선택하세요</div>
+          <input class="st-input" value="2025/09/15" readonly>
+          <button class="st-btn" onclick="document.getElementById('appDemoResult').classList.toggle('show')">급식 조회하기</button>
+          <div class="btn-demo-result" id="appDemoResult">
+            <strong>광명고등학교 20250915 급식</strong>
+            <ul class="st-list">
+              <li>백미밥</li>
+              <li>콩나물국</li>
+              <li>제육볶음</li>
+              <li>연근조림</li>
+              <li>깍두기</li>
+            </ul>
+          </div>
+          <div class="st-hint">(눌러보면 아래 결과가 나타난다)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="num">07</span>교육청 선택하기</h3>
+  <p>지금은 교육청 코드를 <code>"J10"</code>으로 코드에 직접 적어뒀다. 이러면 경기도 학교만 조회할 수 있다. <code>st.selectbox()</code>로 교육청을 고르게 하면 전국 어느 학교든 조회할 수 있다.</p>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py</div>
+      <pre><code>offices = {
+    "서울특별시교육청": "B10", "부산광역시교육청": "C10",
+    "대구광역시교육청": "D10", "인천광역시교육청": "E10",
+    "광주광역시교육청": "F10", "대전광역시교육청": "G10",
+    "울산광역시교육청": "H10", "세종특별자치시교육청": "I10",
+    "경기도교육청": "J10", "강원특별자치도교육청": "K10",
+    "충청북도교육청": "M10", "충청남도교육청": "N10",
+    "전북특별자치도교육청": "P10", "전라남도교육청": "Q10",
+    "경상북도교육청": "R10", "경상남도교육청": "S10",
+    "제주특별자치도교육청": "T10"
+}
+
+office_name = st.selectbox("교육청을 선택하세요", list(offices.keys()))
+office_code = offices[office_name]</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 화면</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-label">교육청을 선택하세요</div>
+          <div class="st-input" style="display:flex; justify-content:space-between; cursor:default;">경기도교육청 <span style="color:#8a8f98;">▾</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p><code>offices</code>는 교육청 이름과 코드를 짝지어둔 딕셔너리다. 사용자는 이름으로 고르고, 코드는 딕셔너리에서 바로 꺼내 쓴다. 이제 <code>find_school(office_code, school_name)</code>에 하드코딩된 값 대신 이 <code>office_code</code>를 넘기면 된다.</p>
+
+  <h3 class="sub"><span class="num">08</span>위젯 나란히 배치하기</h3>
+  <p>교육청을 고른 다음엔 학교 이름과 날짜를 입력받는다. 지금은 입력창들이 위아래로 길게 늘어서 있다. <code>st.columns()</code>로 화면을 여러 칸으로 나눠서 옆으로 배치할 수 있다.</p>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py</div>
+      <pre><code>col1, col2 = st.columns(2)
+with col1:
+    school_name = st.text_input("학교 이름을 입력하세요")
+with col2:
+    date = st.date_input("날짜를 선택하세요")</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 화면</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-row">
+            <div>
+              <div class="st-label">학교 이름을 입력하세요</div>
+              <input class="st-input" value="광명고등학교" readonly>
+            </div>
+            <div>
+              <div class="st-label">날짜를 선택하세요</div>
+              <input class="st-input" value="2025/09/15" readonly>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p><code>with col1:</code> 블록 안에 넣은 위젯은 첫 번째 칸에, <code>with col2:</code> 안에 넣은 위젯은 두 번째 칸에 배치된다.</p>
+
+  <h3 class="sub"><span class="num">09</span>로딩 표시하기</h3>
+  <p>API 요청은 시간이 조금 걸린다. 그동안 화면이 멈춘 것처럼 보이지 않도록 로딩 표시를 띄운다.</p>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py</div>
+      <pre><code>with st.spinner("급식 정보를 불러오는 중..."):
+    raw_menu = get_meal(office_code, school_code, date_str)</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 화면 — 요청하는 동안</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-write"><span class="st-spinner"></span>급식 정보를 불러오는 중...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p><code>with</code> 블록 안의 코드가 끝날 때까지만 표시되고, 끝나면 자동으로 사라진다.</p>
+
+  <h3 class="sub"><span class="num">10</span>상태 알림하기</h3>
+  <p>학교 이름을 잘못 입력했을 때도 대비해야 한다. 결과에 따라 성공·실패 메시지를 다르게 보여준다.</p>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py</div>
+      <pre><code>if raw_menu:
+    st.success(f"{school_name} 급식을 불러왔습니다.")
+else:
+    st.error("급식 정보를 찾을 수 없습니다. 날짜나 학교 이름을 다시 확인해주세요.")</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 화면</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="preview-label" style="margin-bottom:6px;">성공했을 때</div>
+          <div class="st-alert success">✅ 광명고등학교 급식을 불러왔습니다.</div>
+          <div class="preview-label" style="margin:14px 0 6px;">실패했을 때</div>
+          <div class="st-alert error">🚫 급식 정보를 찾을 수 없습니다. 날짜나 학교 이름을 다시 확인해주세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="num">11</span>학교 정보 접어보기</h3>
+  <p>교육청 코드나 학교 코드는 평소엔 안 보여도 되지만, 확인하고 싶을 때는 펼쳐볼 수 있게 만든다.</p>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py</div>
+      <pre><code>with st.expander("학교 정보 더보기"):
+    st.write(f"교육청: {office_name} ({office_code})")
+    st.write(f"학교 코드: {school_code}")</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 화면 — 눌러보기</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <details class="st-expander">
+            <summary>학교 정보 더보기</summary>
+            <div class="st-expander-body">
+              교육청: 경기도교육청 (J10)<br>
+              학교 코드: 7530580
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="num">12</span>마무리 꾸미기</h3>
+  <p><code>st.set_page_config()</code>는 브라우저 탭의 제목과 아이콘을 바꾼다. <strong>파일 맨 위, <code>import</code> 바로 다음</strong>에 있어야 한다. <code>st.balloons()</code>는 화면에 풍선을 띄운다 — 조회에 성공했을 때 붙이면 좋다.</p>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py 맨 위</div>
+      <pre><code>import streamlit as st
+import requests
+import re
+
+st.set_page_config(page_title="급식알리미", page_icon="🍱")</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 탭</div>
+      <div class="st-browser-tab">🍱 급식알리미</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-write" style="color:#8a8f98; font-size:0.85rem;">탭 제목과 아이콘이 바뀐 걸 위에서 확인할 수 있다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="code-preview">
+    <div>
+      <div class="preview-label">app.py — 성공했을 때</div>
+      <pre><code>if raw_menu:
+    st.success(f"{school_name} 급식을 불러왔습니다.")
+    st.balloons()</code></pre>
+    </div>
+    <div>
+      <div class="preview-label">브라우저 화면 — 눌러보기</div>
+      <div class="st-mock-window">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body balloon-demo-wrap">
+          <button class="st-btn" onclick="var b=document.getElementById('demoBalloons'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');">조회 성공 효과 보기</button>
+          <div class="balloon-demo" id="demoBalloons">
+            <span>🎈</span><span>🎈</span><span>🎈</span><span>🎈</span><span>🎈</span>
+          </div>
+          <div class="st-hint">(눌러보면 풍선이 떠오른다)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub"><span class="num">13</span>전체 코드로 합치기 (꾸민 버전)</h3>
+  <p>07~12에서 추가한 기능을 06번 기본 버전에 모두 합친다.</p>
+  <div class="filename-tag">app.py — 전체 (꾸민 버전)</div>
+  <pre><code>import streamlit as st
+import requests
+import re
+
+st.set_page_config(page_title="급식알리미", page_icon="🍱")
+
+API_KEY = "발급받은_인증키"
+
+def find_school(office_code, school_name):
+    url = "https://open.neis.go.kr/hub/schoolInfo"
+    params = {
+        "KEY": API_KEY, "Type": "json",
+        "pIndex": 1, "pSize": 5,
+        "ATPT_OFCDC_SC_CODE": office_code,
+        "SCHUL_NM": school_name
+    }
+    data = requests.get(url, params=params).json()
+    school = data["schoolInfo"][1]["row"][0]
+    return school["SD_SCHUL_CODE"]
+
+def get_meal(office_code, school_code, date):
+    url = "https://open.neis.go.kr/hub/mealServiceDietInfo"
+    params = {
+        "KEY": API_KEY, "Type": "json",
+        "pIndex": 1, "pSize": 5,
+        "ATPT_OFCDC_SC_CODE": office_code,
+        "SD_SCHUL_CODE": school_code,
+        "MLSV_YMD": date
+    }
+    data = requests.get(url, params=params).json()
+    return data["mealServiceDietInfo"][1]["row"][0]["DDISH_NM"]
+
+def clean_dish_name(dish):
+    dish = re.sub(r"[\(\[].*?[\)\]]", "", dish)
+    return dish.strip("*! ")
+
+def clean_menu(raw):
+    return [clean_dish_name(d) for d in raw.split("&lt;br/&gt;")]
+
+st.title("🍱 급식알리미")
+
+offices = {
+    "서울특별시교육청": "B10", "부산광역시교육청": "C10",
+    "대구광역시교육청": "D10", "인천광역시교육청": "E10",
+    "광주광역시교육청": "F10", "대전광역시교육청": "G10",
+    "울산광역시교육청": "H10", "세종특별자치시교육청": "I10",
+    "경기도교육청": "J10", "강원특별자치도교육청": "K10",
+    "충청북도교육청": "M10", "충청남도교육청": "N10",
+    "전북특별자치도교육청": "P10", "전라남도교육청": "Q10",
+    "경상북도교육청": "R10", "경상남도교육청": "S10",
+    "제주특별자치도교육청": "T10"
+}
+office_name = st.selectbox("교육청을 선택하세요", list(offices.keys()))
+office_code = offices[office_name]
+
+col1, col2 = st.columns(2)
+with col1:
+    school_name = st.text_input("학교 이름을 입력하세요")
+with col2:
+    date = st.date_input("날짜를 선택하세요")
+
+if st.button("급식 조회하기"):
+    school_code = find_school(office_code, school_name)
+
+    with st.spinner("급식 정보를 불러오는 중..."):
+        date_str = date.strftime("%Y%m%d")
+        raw_menu = get_meal(office_code, school_code, date_str)
+
+    if raw_menu:
+        st.success(f"{school_name} 급식을 불러왔습니다.")
+        st.balloons()
+
+        menu = clean_menu(raw_menu)
+        st.write(f"### {school_name} {date_str} 급식")
+        for dish in menu:
+            st.write(f"- {dish}")
+
+        with st.expander("학교 정보 더보기"):
+            st.write(f"교육청: {office_name} ({office_code})")
+            st.write(f"학교 코드: {school_code}")
+    else:
+        st.error("급식 정보를 찾을 수 없습니다. 날짜나 학교 이름을 다시 확인해주세요.")</code></pre>
+
+  <div class="code-preview">
+    <div style="flex: 0;"></div>
+    <div>
+      <div class="preview-label">브라우저 화면 — 눌러보기</div>
+      <div class="st-browser-tab">🍱 급식알리미</div>
+      <div class="st-mock-window balloon-demo-wrap">
+        <div class="st-mock-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="st-mock-body">
+          <div class="st-title">🍱 급식알리미</div>
+          <div class="st-label">교육청을 선택하세요</div>
+          <div class="st-input" style="display:flex; justify-content:space-between; cursor:default; margin-bottom:14px;">경기도교육청 <span style="color:#8a8f98;">▾</span></div>
+          <div class="st-row">
+            <div>
+              <div class="st-label">학교 이름을 입력하세요</div>
+              <input class="st-input" value="광명고등학교" readonly>
+            </div>
+            <div>
+              <div class="st-label">날짜를 선택하세요</div>
+              <input class="st-input" value="2025/09/15" readonly>
+            </div>
+          </div>
+          <button class="st-btn" onclick="document.getElementById('finalDemoResult').classList.toggle('show'); var b=document.getElementById('finalBalloons'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');">급식 조회하기</button>
+          <div class="btn-demo-result" id="finalDemoResult">
+            <div class="st-alert success">✅ 광명고등학교 급식을 불러왔습니다.</div>
+            <strong>광명고등학교 20250915 급식</strong>
+            <ul class="st-list">
+              <li>백미밥</li>
+              <li>콩나물국</li>
+              <li>제육볶음</li>
+              <li>연근조림</li>
+              <li>깍두기</li>
+            </ul>
+            <details class="st-expander">
+              <summary>학교 정보 더보기</summary>
+              <div class="st-expander-body">
+                교육청: 경기도교육청 (J10)<br>
+                학교 코드: 7530580
+              </div>
+            </details>
+          </div>
+          <div class="balloon-demo" id="finalBalloons">
+            <span>🎈</span><span>🎈</span><span>🎈</span><span>🎈</span><span>🎈</span>
+          </div>
+          <div class="st-hint">(눌러보면 결과와 풍선이 함께 나타난다)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="recap">
+    <h3>정리</h3>
+    <ul>
+      <li>Streamlit은 위젯 값이 바뀔 때마다 스크립트 전체를 처음부터 다시 실행한다.</li>
+      <li><code>if st.button(...):</code>로 이 재실행 안에서 특정 코드만 조건부로 실행되게 만든다.</li>
+      <li>Step1~2에서 만든 함수를 수정 없이 그대로 가져와 화면에 연결했다.</li>
+      <li><code>selectbox</code>·<code>columns</code>·<code>spinner</code>·<code>success</code>/<code>error</code>·<code>expander</code>·<code>balloons</code>로 화면을 다듬었다.</li>
+    </ul>
+  </div>
+
+  <footer class="next">
+    <strong>다음</strong> — 학교 이름을 바꿀 때마다 <code>find_school()</code>이 매번 다시 호출되는 비효율은 아직 남아있다. 이 부분은 <code>st.cache_data</code>를 다루는 심화 단계에서 정리한다.
+  </footer>
+
+</div>
+<script>
+  // 실습 체크리스트
+  document.querySelectorAll('.steps').forEach(function (list) {
+    var items = list.querySelectorAll('li');
+    var total = items.length;
+    var progress = document.createElement('div');
+    progress.className = 'steps-progress';
+    function update() {
+      var done = list.querySelectorAll('li.done').length;
+      progress.textContent = done + ' / ' + total + ' 완료';
+    }
+    list.parentNode.insertBefore(progress, list);
+    items.forEach(function (li) {
+      li.addEventListener('click', function (e) {
+        li.classList.toggle('done');
+        update();
+      });
+    });
+    update();
+  });
+
+  // 스크롤 시 등장 애니메이션
+  var revealEls = document.querySelectorAll('.container > *:not(.stepnav):not(header.top):not(footer.next)');
+  revealEls.forEach(function (el) { el.classList.add('reveal'); });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(function (el) { io.observe(el); });
+
+  // 상단 진행률 바
+  var bar = document.getElementById('progressbar');
+  function updateBar() {
+    var h = document.documentElement;
+    var scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = (isFinite(scrolled) ? scrolled : 0) + '%';
+  }
+  window.addEventListener('scroll', updateBar);
+  updateBar();
+
+  // 맨 위로 버튼
+  var backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', function () {
+    backToTop.classList.toggle('show', window.scrollY > 400);
+  });
+  backToTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+<script src="code-highlight.js"></script>
+</body>
+</html>

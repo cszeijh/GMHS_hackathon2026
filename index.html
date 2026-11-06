@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해커톤 수업자료 | 급식알리미 만들기</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #5a6472;
+    --accent: #1d6f5c;
+    --accent-bg: #eaf4f1;
+    --border: #dfe3e8;
+    --code-bg: #1e2530;
+    --code-fg: #dbe4ef;
+    --warn-bg: #fdf3e7;
+    --warn-border: #e8b465;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.7;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 24px 100px; }
+
+  header.top { border-bottom: 2px solid var(--fg); padding-bottom: 20px; margin-bottom: 36px; }
+  header.top .eyebrow { font-size: 13px; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  header.top h1 { font-size: 32px; margin: 0 0 10px; }
+  header.top p { color: var(--muted); margin: 0; font-size: 15px; }
+
+  h3.sub { font-size: 17px; margin: 40px 0 12px; display: flex; align-items: center; gap: 8px; }
+  h3.sub .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 22px; padding: 0 5px; border-radius: 6px;
+    background: var(--fg); color: #fff; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.03em; flex-shrink: 0;
+  }
+  p { margin: 10px 0; }
+
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 14px 18px; margin: 14px 0 20px; font-size: 14.5px;
+  }
+
+  .lesson-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 14px 0 8px;
+  }
+  .lesson-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: var(--fg);
+    background: var(--bg);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .lesson-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+    border-color: var(--accent);
+  }
+  .lesson-card .tag {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--fg);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .lesson-card.bonus .tag { background: var(--accent); }
+  .lesson-card.sample .tag { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  .lesson-card h4 { margin: 2px 0 0; font-size: 16.5px; }
+  .lesson-card p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+  .lesson-card .go {
+    margin-top: auto;
+    padding-top: 6px;
+    font-size: 12.5px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 44px 0 4px;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .section-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    padding: 0;
+    margin: 16px 0;
+  }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14.5px;
+  }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before {
+    content: counter(step);
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  footer.bottom {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  #progressbar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); width: 0%; z-index: 999; transition: width .1s linear; }
+  .back-to-top {
+    position: fixed; right: 22px; bottom: 22px;
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--accent); color: #fff; border: none;
+    font-size: 18px; cursor: pointer;
+    opacity: 0; pointer-events: none; transform: translateY(10px);
+    transition: opacity .2s ease, transform .2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  }
+  .back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .back-to-top:hover { filter: brightness(1.1); }
+
+  @media (max-width: 600px) {
+    .container { padding: 24px 16px 80px; }
+    header.top h1 { font-size: 24px; }
+    header.top p { font-size: 14px; }
+    h3.sub { font-size: 15.5px; }
+    .section-divider { margin: 36px 0 4px; font-size: 12px; }
+    .lesson-grid { gap: 10px; }
+    .lesson-card { padding: 16px 18px; }
+    .back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; }
+  }
+
+  @media print {
+    body { font-size: 12px; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .back-to-top, #progressbar { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="progressbar"></div>
+<button class="back-to-top" id="backToTop" aria-label="맨 위로">↑</button>
+<div class="container">
+
+  <header class="top">
+    <div class="eyebrow">해커톤 수업자료</div>
+    <h1>급식알리미 만들기</h1>
+    <p>나이스(NEIS) 교육정보 개방포털 API로 우리 학교 급식을 보여주는 웹앱을, Streamlit과 AI 코딩 도구를 이용해 처음부터 배포까지 직접 만들어본다.</p>
+  </header>
+
+  <div class="note">
+    각 단계는 이전 단계에서 이어진다. 순서대로 Step0부터 진행하고, 이미 끝낸 단계가 있다면 해당 카드를 눌러 바로 이동해도 된다. 모든 페이지 상단의 <strong>🏠 메인</strong> 버튼을 누르면 언제든 이 페이지로 돌아온다.
+  </div>
+
+  <div class="section-divider">진행 순서</div>
+
+  <div class="lesson-grid">
+    <a class="lesson-card reveal" href="해커톤_Step0_개발환경준비.html">
+      <span class="tag">Step 0</span>
+      <h4>개발 환경 준비</h4>
+      <p>Python, VS Code, 가상환경(venv)을 설치하고 실습 준비를 마친다.</p>
+      <span class="go">시작하기 →</span>
+    </a>
+    <a class="lesson-card reveal" href="해커톤_Step1_API기초.html">
+      <span class="tag">Step 1</span>
+      <h4>API 기초</h4>
+      <p>API가 무엇인지, JSON과 상태 코드는 무엇을 뜻하는지 익힌다.</p>
+      <span class="go">시작하기 →</span>
+    </a>
+    <a class="lesson-card reveal" href="해커톤_Step2_나이스API_급식데이터.html">
+      <span class="tag">Step 2</span>
+      <h4>나이스 API로 급식 데이터 가져오기</h4>
+      <p>학교 코드를 조회하고, 급식 정보 API를 호출해 오늘의 메뉴를 받아온다.</p>
+      <span class="go">시작하기 →</span>
+    </a>
+    <a class="lesson-card reveal" href="해커톤_Step3_Streamlit기초.html">
+      <span class="tag">Step 3</span>
+      <h4>Streamlit 기초</h4>
+      <p>제목, 선택창, 버튼 같은 위젯을 조합해 급식알리미 웹앱 화면을 만든다.</p>
+      <span class="go">시작하기 →</span>
+    </a>
+    <a class="lesson-card reveal" href="해커톤_Step4_Streamlit배포.html">
+      <span class="tag">Step 4</span>
+      <h4>Streamlit 배포하기</h4>
+      <p>GitHub와 Streamlit Community Cloud로 앱을 인터넷에 공개한다. API 키를 안전하게 숨기는 방법도 함께 다룬다.</p>
+      <span class="go">시작하기 →</span>
+    </a>
+    <a class="lesson-card reveal" href="해커톤_Step5_바이브코딩.html">
+      <span class="tag">Step 5</span>
+      <h4>바이브코딩으로 내 앱 확장하기</h4>
+      <p>AI 코딩 도구와 함께 즐겨찾기, 디자인 개선, 캐싱까지 직접 기능을 추가해본다.</p>
+      <span class="go">시작하기 →</span>
+    </a>
+  </div>
+
+  <div class="section-divider">추가 탐구 활동</div>
+
+  <div class="lesson-grid">
+    <a class="lesson-card bonus reveal" href="해커톤_AI추가탐구활동_제미나이챗봇.html">
+      <span class="tag">Bonus</span>
+      <h4>Gemini 챗봇 — 급식을 아는 AI 트레이너 만들기</h4>
+      <p>Gemini API로 내 앱에 챗봇 화면을 붙인다. 오늘 급식 데이터와 안전 규칙을 챗봇에게 알려 주는 과정을 바이브코딩으로 따라 해본다. Step4 또는 Step5를 마친 팀을 위한 활동이다.</p>
+      <span class="go">더 알아보기 →</span>
+    </a>
+    <a class="lesson-card bonus reveal" href="해커톤_AI추가탐구활동_하네스엔지니어링.html">
+      <span class="tag">Bonus</span>
+      <h4>하네스 엔지니어링 — AI 에이전트 팀 설계하기</h4>
+      <p>여러 AI 에이전트가 역할을 나눠 협업하는 구조를 이해하고, 작은 2인 팀 하네스를 직접 설계해본다. Step0~5를 마친 뒤 시간이 남는 팀을 위한 심화 활동이다.</p>
+      <span class="go">더 알아보기 →</span>
+    </a>
+  </div>
+
+  <div class="section-divider">해커톤 발표 샘플</div>
+
+  <div class="note">
+    같은 수업자료로 만든 완성 사례다. 우리가 만들 급식알리미를 어디까지 확장할 수 있는지, 그리고 발표를 어떻게 구성하는지 참고한다.
+  </div>
+
+  <div class="lesson-grid">
+    <a class="lesson-card sample reveal" href="https://gm-hackathon2026.streamlit.app/" target="_blank" rel="noopener noreferrer">
+      <span class="tag">Sample</span>
+      <h4>실제 구현한 사이트 — 우리학교 다이어트 지키미</h4>
+      <p>급식 칼로리를 걷기·줄넘기 시간으로 바꿔 주고, 급식 데이터를 아는 AI 트레이너와 대화하는 웹앱이다.</p>
+      <span class="go">사이트 열기 →</span>
+    </a>
+    <a class="lesson-card sample reveal" href="해커톤_발표샘플_다이어트지키미.html" target="_blank" rel="noopener noreferrer">
+      <span class="tag">Sample</span>
+      <h4>발표 자료 — 우리학교 다이어트 지키미</h4>
+      <p>문제 발견부터 구현, 검증·개선, 결과까지 담은 HTML 발표 자료다. 방향키로 넘기며 볼 수 있다.</p>
+      <span class="go">발표 열기 →</span>
+    </a>
+  </div>
+
+  <div class="section-divider">오늘 하루의 흐름</div>
+
+  <ol class="steps">
+    <li>Step0에서 개발 환경을 준비하고, Step1~2에서 API로 급식 데이터를 받아오는 법을 익힌다.</li>
+    <li>Step3에서 Streamlit으로 화면을 만들고, Step4에서 실제로 인터넷에 배포한다.</li>
+    <li>Step5에서 AI와 함께 즐겨찾기·디자인·캐싱 같은 기능을 자유롭게 확장한다.</li>
+    <li>시간이 남으면 추가 탐구 활동으로 Gemini 챗봇을 앱에 붙여 보고, 이어서 하네스 엔지니어링을 실습해본다.</li>
+  </ol>
+
+  <footer class="bottom">
+    해커톤 수업자료 · 나이스(NEIS) 교육정보 개방포털 API 기반 급식알리미 만들기
+  </footer>
+
+</div>
+<script>
+  var revealEls = document.querySelectorAll('.reveal');
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(function (el) { io.observe(el); });
+
+  var bar = document.getElementById('progressbar');
+  window.addEventListener('scroll', function () {
+    var h = document.documentElement;
+    var scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = scrolled + '%';
+
+    var btn = document.getElementById('backToTop');
+    if (h.scrollTop > 400) { btn.classList.add('show'); } else { btn.classList.remove('show'); }
+  });
+  document.getElementById('backToTop').addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해커톤 수업자료 | Step1. API란 무엇인가</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #5a6472;
+    --accent: #1d6f5c;
+    --accent-bg: #eaf4f1;
+    --border: #dfe3e8;
+    --code-bg: #1e2530;
+    --code-fg: #dbe4ef;
+    --warn-bg: #fdf3e7;
+    --warn-border: #e8b465;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.7;
+  }
+  .container { max-width: 880px; margin: 0 auto; padding: 40px 24px 100px; }
+  .stepnav { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stepnav a {
+    text-decoration: none;
+    color: var(--muted);
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font-size: 13px;
+  }
+  .stepnav a.current { background: var(--accent); color: #fff; border-color: var(--accent); }
+  header.top { border-bottom: 2px solid var(--fg); padding-bottom: 20px; margin-bottom: 36px; }
+  header.top .eyebrow {
+    font-size: 13px; letter-spacing: 0.06em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  header.top h1 { font-size: 28px; margin: 0 0 10px; }
+  header.top p { color: var(--muted); margin: 0; font-size: 15px; }
+
+  h3.sub {
+    font-size: 17px; margin: 32px 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h3.sub .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 22px; padding: 0 5px; border-radius: 6px;
+    background: var(--fg); color: #fff; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.03em; flex-shrink: 0;
+  }
+  p { margin: 10px 0; }
+
+  .problem-box {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 14px 18px; margin: 14px 0 20px; font-size: 14.5px;
+  }
+  .problem-box strong { color: var(--accent); }
+
+  pre {
+    background: var(--code-bg); color: var(--code-fg);
+    padding: 18px 20px; border-radius: 8px; overflow-x: auto;
+    font-size: 13.5px; line-height: 1.65; margin: 12px 0 20px;
+  }
+  code { font-family: "D2Coding", "Consolas", "SF Mono", monospace; }
+  .filename-tag {
+    font-family: "D2Coding", "Consolas", monospace;
+    font-size: 12.5px; color: var(--muted);
+    margin-bottom: -8px; margin-top: 12px;
+  }
+
+  .result-box {
+    border: 1px dashed var(--border); border-radius: 8px;
+    padding: 14px 18px; margin: 12px 0 20px; background: #fafbfc;
+  }
+  .result-box .tag {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .result-box pre { background: transparent; color: var(--fg); padding: 0; margin: 0; font-size: 13.5px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 24px; font-size: 13.5px; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f4f6f8; font-weight: 600; width: 26%; }
+  td code { font-size: 12.5px; background: #f1f3f5; padding: 1px 5px; border-radius: 3px; }
+
+  .flow {
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px; margin: 24px 0 28px; flex-wrap: wrap;
+  }
+  .flow .box {
+    border: 1.5px solid var(--fg); border-radius: 8px;
+    padding: 14px 20px; text-align: center; font-size: 14px; min-width: 130px;
+  }
+  .flow .box .role { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+  .flow .arrow { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: var(--muted); }
+  .flow .arrow .line { font-size: 18px; line-height: 1; }
+
+  .steps { counter-reset: step; padding: 0; margin: 14px 0 22px; list-style: none; }
+  .steps li {
+    counter-increment: step; position: relative;
+    padding-left: 34px; margin-bottom: 10px; font-size: 14.5px;
+  }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 0;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .recap { border-top: 2px solid var(--fg); padding-top: 16px; margin-top: 36px; }
+  .recap h3 { font-size: 15px; margin: 0 0 10px; }
+  .recap ul { margin: 0; padding-left: 20px; font-size: 14px; }
+  .recap li { margin-bottom: 5px; }
+
+  footer.next {
+    border: 1.5px dashed var(--border); border-radius: 8px;
+    padding: 18px 22px; font-size: 14px; color: var(--muted); margin-top: 40px;
+  }
+  footer.next strong { color: var(--fg); }
+  footer.next a { color: var(--accent); }
+
+  html { scroll-behavior: smooth; }
+
+  #progressbar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); width: 0%; z-index: 999;
+    transition: width .1s linear;
+  }
+
+  .stepnav a { transition: all .15s ease; }
+  .stepnav a:hover:not(.current) { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  .note, .problem-box, pre, .flow .box {
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .note:hover, .problem-box:hover, pre:hover, .flow .box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  }
+
+  table tr:hover td { background: var(--accent-bg); }
+
+  .result-box summary {
+    cursor: pointer; list-style: none; outline: none;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .result-box summary::-webkit-details-marker { display: none; }
+  .result-box summary::before {
+    content: "▶"; font-size: 9px; color: var(--accent);
+    transition: transform .15s ease;
+  }
+  .result-box[open] summary::before { transform: rotate(90deg); }
+  .result-box[open] summary { margin-bottom: 8px; }
+  .result-box:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+
+  .steps-progress { font-size: 12px; color: var(--muted); font-weight: 600; margin: 4px 0 10px; }
+  .steps li { cursor: pointer; transition: opacity .15s ease; }
+  .steps li:hover { opacity: 0.85; }
+  .steps li.done { opacity: 0.5; text-decoration: line-through; }
+  .steps li.done::before { content: "✓"; }
+
+  .back-to-top {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--accent); color: #fff; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    opacity: 0; pointer-events: none; transform: translateY(10px);
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 998;
+  }
+  .back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .back-to-top:hover { filter: brightness(1.1); }
+
+  @media (max-width: 600px) {
+    .container { padding: 24px 16px 80px; }
+    header.top h1 { font-size: 22px; }
+    h3.sub { font-size: 15.5px; }
+    .flow { flex-direction: column; }
+    .back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; }
+  }
+
+  @media print {
+    body { font-size: 12px; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .back-to-top, #progressbar, .stepnav { display: none !important; }
+    details > *:not(summary) { display: block !important; }
+  }
+
+  /* ── 개념 팝업 (딕셔너리 보충 설명) ── */
+  .concept-hint { font-size: 14px; color: var(--muted); margin: 10px 0 20px; }
+  .concept-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: inherit; font-size: 13px; font-weight: 600; line-height: 1.5;
+    color: var(--accent); background: var(--accent-bg);
+    border: 1px solid var(--accent); border-radius: 14px;
+    padding: 3px 12px; margin-left: 4px; cursor: pointer;
+    transition: all .15s ease;
+  }
+  .concept-btn:hover { background: var(--accent); color: #fff; }
+  .term-link {
+    font: inherit; font-weight: 600; color: var(--accent);
+    background: none; border: 0; border-bottom: 1.5px dotted var(--accent);
+    padding: 0; cursor: pointer;
+  }
+  .term-link:hover { background: var(--accent-bg); }
+  .concept-btn:focus-visible, .term-link:focus-visible, .cm-close:focus-visible, .cm-foot button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  body.modal-open { overflow: hidden; }
+
+  dialog.cm {
+    width: min(760px, calc(100vw - 32px)); max-width: none;
+    max-height: min(88vh, 920px);
+    padding: 0; border: 1px solid var(--border); border-radius: 12px;
+    color: var(--fg); background: var(--bg);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    overflow: hidden;
+  }
+  dialog.cm[open] { display: flex; flex-direction: column; animation: cm-in .18s ease; }
+  dialog.cm::backdrop { background: rgba(26,26,26,0.5); }
+  @keyframes cm-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { dialog.cm[open] { animation: none; } }
+
+  .cm-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    padding: 18px 22px 14px; border-bottom: 2px solid var(--fg); flex-shrink: 0;
+  }
+  .cm-eyebrow { font-size: 12px; letter-spacing: 0.06em; color: var(--muted); }
+  .cm-head h2 { font-size: 19px; margin: 2px 0 0; line-height: 1.4; }
+  .cm-close {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    border: 1px solid var(--border); background: #fff; color: var(--muted);
+    font-size: 16px; cursor: pointer; transition: all .15s ease;
+  }
+  .cm-close:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  .cm-body { padding: 6px 22px 24px; overflow-y: auto; overscroll-behavior: contain; font-size: 14.5px; }
+  .cm-body h3 { font-size: 16px; margin: 28px 0 8px; display: flex; align-items: center; gap: 8px; }
+  .cm-body h3 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 22px; padding: 0 5px; border-radius: 6px;
+    background: var(--fg); color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .cm-body pre:hover { transform: none; box-shadow: none; }
+  .cm-body td, .cm-body th { overflow-wrap: anywhere; }
+  .cm-body .result-box summary { display: block; text-transform: none; line-height: 1.6; }
+  .cm-body .result-box summary::before { margin-right: 8px; display: inline-block; }
+  .cm-body .result-box pre { white-space: pre-wrap; font-size: 13.5px; }
+  .cm-lead {
+    border-left: 3px solid var(--accent); background: var(--accent-bg);
+    padding: 14px 18px; margin: 18px 0 4px; font-size: 14.5px;
+  }
+  .cm-lead strong { color: var(--accent); }
+  .cm-warn {
+    background: var(--warn-bg); border: 1px solid var(--warn-border);
+    border-radius: 8px; padding: 12px 16px; font-size: 14px; margin: 14px 0;
+  }
+  .cm-warn .tag { font-weight: 700; font-size: 12.5px; color: #8a5a12; margin-bottom: 4px; }
+  .cm-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 22px; border-top: 1px solid var(--border); background: #fafbfc;
+    font-size: 12.5px; color: var(--muted); flex-shrink: 0;
+  }
+  .cm-foot button {
+    font-family: inherit; font-size: 13.5px; font-weight: 600; color: #fff;
+    background: var(--accent); border: 0; border-radius: 8px; padding: 7px 18px; cursor: pointer;
+  }
+  .cm-foot button:hover { filter: brightness(1.1); }
+
+  /* 키-값 구조를 눈으로 보여 주는 작은 표 */
+  .kv {
+    display: grid; grid-template-columns: 1fr 2fr; max-width: 440px; margin: 12px 0 6px;
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font-size: 13.5px;
+  }
+  .kv div { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+  .kv div:nth-last-child(-n+2) { border-bottom: 0; }
+  .kv .h { background: #f4f6f8; font-weight: 600; color: var(--muted); font-size: 12px; }
+  .kv .k { background: var(--accent-bg); color: var(--accent); font-weight: 600; font-family: "D2Coding", "Consolas", monospace; }
+  .kv .v { font-family: "D2Coding", "Consolas", monospace; }
+  .kv .hit { background: #fff3c4; }
+
+  @media (max-width: 600px) {
+    dialog.cm { width: calc(100vw - 16px); max-height: 92vh; }
+    .cm-head { padding: 14px 16px 12px; }
+    .cm-head h2 { font-size: 17px; }
+    .cm-body { padding: 4px 16px 20px; }
+    .cm-foot { padding: 10px 16px; }
+    .cm-foot span { display: none; }
+    .cm-foot button { width: 100%; }
+  }
+  @media print { .concept-hint, dialog.cm { display: none !important; } }
+</style>
+</head>
+<body>
+<div id="progressbar"></div>
+<button class="back-to-top" id="backToTop" aria-label="맨 위로">↑</button>
+<div class="container">
+
+  <div class="stepnav">
+    <a href="index.html">🏠 메인</a>
+    <a href="해커톤_Step0_개발환경준비.html">Step0</a>
+    <a href="해커톤_Step1_API기초.html" class="current">Step1</a>
+    <a href="해커톤_Step2_나이스API_급식데이터.html">Step2</a>
+    <a href="해커톤_Step3_Streamlit기초.html">Step3</a>
+    <a href="해커톤_Step4_Streamlit배포.html">Step4</a>
+    <a href="해커톤_Step5_바이브코딩.html">Step5</a>
+  </div>
+
+  <header class="top">
+    <div class="eyebrow">해커톤 · 데이터 분석 수업자료</div>
+    <h1>Step1. API란 무엇인가</h1>
+    <p>Step0에서 개발 환경 설정을 마쳤다는 전제로 진행한다.</p>
+  </header>
+
+  <h3 class="sub"><span class="num">01</span>왜 필요한가</h3>
+  <div class="problem-box">
+    급식 메뉴를 확인하려면 학교 홈페이지에 들어가서 공지사항을 찾아야 한다. 매일 이렇게 확인하는 건 번거롭다.
+    학교 서버에 있는 급식 데이터를 코드로 바로 가져올 수 있다면, 이 과정을 자동화할 수 있다.
+    이걸 가능하게 해주는 것이 <strong>API</strong>다.
+  </div>
+
+  <h3 class="sub"><span class="num">02</span>API의 요청-응답 구조</h3>
+  <p>API는 "내가 원하는 데이터를 정해진 형식으로 요청하면, 정해진 형식으로 응답을 돌려주는 창구"다.</p>
+  <div class="flow">
+    <div class="box"><div class="role">내 코드</div>요청 (Request)</div>
+    <div class="arrow"><span class="line">&#8594;</span>URL + 파라미터</div>
+    <div class="box"><div class="role">서버</div>데이터 처리</div>
+    <div class="arrow"><span class="line">&#8594;</span>JSON 응답</div>
+    <div class="box"><div class="role">내 코드</div>응답 (Response)</div>
+  </div>
+  <p>요청을 보낼 때 필요한 것은 크게 세 가지다: <strong>URL</strong>(어디에 요청하는지), <strong>파라미터</strong>(무엇을 요청하는지), <strong>응답 형식</strong>(결과를 어떤 형태로 받을지 — 보통 JSON).</p>
+
+  <h3 class="sub"><span class="num">03</span>JSON — API가 주고받는 데이터 형식</h3>
+  <p>데이터는 구조를 가진 정도에 따라 세 가지로 나뉜다.</p>
+  <table>
+    <tr><th>정형 데이터</th><td>행과 열이 고정된 표 형태. 엑셀, 데이터베이스 테이블.</td></tr>
+    <tr><th>반정형 데이터</th><td>구조는 있지만 행과 열처럼 고정되어 있지 않다. 항목마다 필드 개수나 중첩 구조가 달라질 수 있다. <strong>JSON</strong>, XML이 여기에 속한다.</td></tr>
+    <tr><th>비정형 데이터</th><td>구조가 없다. 사진, 영상, 자유 형식의 텍스트.</td></tr>
+  </table>
+  <p>API는 대부분 JSON으로 응답한다. JSON은 <code>키: 값</code> 쌍으로 이루어지고, 값 자리에 또 다른 객체(<code>{}</code>)나 리스트(<code>[]</code>)가 중첩될 수 있다. 표와 달리 항목마다 필드 구성이 달라져도 표현할 수 있는 이유가 이 중첩 구조 때문이다.</p>
+  <pre><code>{
+  "userId": 1,
+  "id": 1,
+  "title": "sunt aut facere...",
+  "tags": ["study", "python"]
+}</code></pre>
+  <p>파이썬에서는 <code>{}</code>가 딕셔너리, <code>[]</code>가 리스트로 그대로 대응된다. <code>.json()</code>으로 변환하면 파이썬의 딕셔너리·리스트 문법으로 값을 꺼낼 수 있다. 뒤에서 나이스 API 응답을 다룰 때 <code>["schoolInfo"][1]["row"][0]</code>처럼 대괄호를 여러 번 쓰는 이유도 이 중첩 구조 때문이다.</p>
+  <p class="concept-hint">딕셔너리와 JSON 구조가 낯설다면 <button type="button" class="concept-btn" data-modal="dlg-dict" aria-haspopup="dialog">📖 딕셔너리 알아보기</button></p>
+
+  <h3 class="sub"><span class="num">04</span>실습 준비</h3>
+  <p>개발 환경이 이미 갖춰져 있다는 전제로 진행한다 (처음 설치하는 경우 <a href="해커톤_Step0_개발환경준비.html">Step0</a> 참고).</p>
+  <ol class="steps">
+    <li>VS Code에서 프로젝트 폴더를 열고 가상환경을 활성화한다.</li>
+    <li>새 파일 <code>api_practice.py</code>를 만든다.</li>
+    <li>터미널에서 <code>pip install requests</code>를 실행한다.</li>
+  </ol>
+
+  <h3 class="sub"><span class="num">05</span>첫 API 호출</h3>
+  <p>인증키가 필요 없는 공개 API로 먼저 연습한다.</p>
+  <div class="filename-tag">api_practice.py</div>
+  <pre><code>import requests
+
+url = "https://jsonplaceholder.typicode.com/posts/1"
+response = requests.get(url)
+
+print(response.status_code)   # 200이면 성공
+print(response.json())        # 딕셔너리 형태로 변환된 응답</code></pre>
+
+  <p><code>response.status_code</code>는 요청이 어떻게 처리됐는지 알려주는 숫자다. 자주 마주치는 코드는 다음과 같다.</p>
+  <table>
+    <tr><th>200 OK</th><td>요청 성공. 정상적으로 데이터를 받았다.</td></tr>
+    <tr><th>400 Bad Request</th><td>요청 파라미터가 잘못됐다.</td></tr>
+    <tr><th>401 Unauthorized</th><td>인증키가 없거나 잘못됐다.</td></tr>
+    <tr><th>403 Forbidden</th><td>접근 권한이 없다.</td></tr>
+    <tr><th>404 Not Found</th><td>요청한 주소(URL)를 찾을 수 없다.</td></tr>
+    <tr><th>500 Internal Server Error</th><td>서버 쪽에서 오류가 발생했다.</td></tr>
+  </table>
+  <p>200번대는 성공, 400번대는 요청(내 쪽) 문제, 500번대는 서버 쪽 문제로 구분해서 기억해두면 오류를 마주쳤을 때 원인을 좁히기 쉽다.</p>
+
+  <details class="result-box">
+    <summary class="tag">실행 결과 확인하기</summary>
+    <pre>200
+{'userId': 1, 'id': 1, 'title': 'sunt aut facere...', 'body': 'quia et suscipit...'}</pre>
+  </details>
+
+  <p><code>response.json()</code>은 서버가 돌려준 JSON 텍스트를 파이썬 딕셔너리로 바꿔준다. 이후 <code>["title"]</code>처럼 딕셔너리 키로 원하는 값만 꺼낼 수 있다.</p>
+
+  <div class="filename-tag">api_practice.py — 원하는 값만 꺼내기</div>
+  <pre><code>data = response.json()
+print(data["title"])</code></pre>
+
+  <h3 class="sub"><span class="num">06</span>파라미터가 있는 요청</h3>
+  <p>대부분의 실제 API는 URL만으로 끝나지 않고, 어떤 데이터를 원하는지 파라미터로 지정해야 한다. <code>params</code> 인자에 <button type="button" class="term-link" data-modal="dlg-dict" aria-haspopup="dialog">딕셔너리</button>로 넘기면 requests가 알아서 URL 뒤에 붙여준다.</p>
+  <pre><code>params = {
+    "userId": 1
+}
+response = requests.get("https://jsonplaceholder.typicode.com/posts", params=params)
+print(len(response.json()), "개의 게시물")</code></pre>
+
+  <div class="recap">
+    <h3>정리</h3>
+    <ul>
+      <li>API는 URL + 파라미터로 요청하고, JSON으로 응답받는 구조다.</li>
+      <li><code>requests.get(url, params=...)</code>로 요청을 보낸다.</li>
+      <li><code>.json()</code>으로 응답을 파이썬 딕셔너리로 바꿔서 다룬다.</li>
+    </ul>
+  </div>
+
+  <footer class="next">
+    <strong>다음</strong> — <a href="해커톤_Step2_나이스API_급식데이터.html">Step2. 나이스 Open API로 급식 데이터 가져오기</a>로 이어간다.
+  </footer>
+
+</div>
+<!-- ── 개념 팝업: 딕셔너리 ── -->
+<dialog class="cm" id="dlg-dict" aria-labelledby="dlg-dict-title">
+  <div class="cm-head">
+    <div>
+      <div class="cm-eyebrow">개념 짚고 가기 · 파이썬 기초</div>
+      <h2 id="dlg-dict-title">딕셔너리 — 이름표(키)를 붙여 담는 자료형</h2>
+    </div>
+    <button type="button" class="cm-close" data-close aria-label="팝업 닫기">✕</button>
+  </div>
+
+  <div class="cm-body">
+    <div class="cm-lead">
+      딕셔너리(dict)는 <strong>키(key)와 값(value)을 짝지어 담는 자료형</strong>이다.
+      리스트가 <strong>자리 번호</strong>로 꺼낸다면 딕셔너리는 <strong>키(이름표)</strong>로 꺼낸다.
+      API가 보내 주는 JSON을 <code>.json()</code>으로 바꾸면 바로 이 딕셔너리(와 리스트)가 된다.
+    </div>
+
+    <h3><span class="num">01</span>키와 값, 그리고 꺼내기</h3>
+    <div class="kv" aria-hidden="true">
+      <div class="h">키 (이름표)</div><div class="h">값</div>
+      <div class="k">"userId"</div><div class="v">1</div>
+      <div class="k">"id"</div><div class="v">1</div>
+      <div class="k hit">"title"</div><div class="v hit">"sunt aut facere..."</div>
+      <div class="k">"tags"</div><div class="v">["study", "python"]</div>
+    </div>
+    <pre><code>data = {
+    "userId": 1,
+    "id": 1,
+    "title": "sunt aut facere...",
+    "tags": ["study", "python"]
+}
+
+print(data["title"])      # sunt aut facere...   번호가 아니라 키로 꺼낸다
+print(data["tags"])       # ['study', 'python']
+print(data["tags"][0])    # study                값이 리스트면 번호로 한 번 더 꺼낸다</code></pre>
+    <table>
+      <tr><th></th><th>리스트</th><th>딕셔너리</th></tr>
+      <tr><th>만드는 법</th><td><code>[90, 85]</code></td><td><code>{"A": 90, "B": 85}</code></td></tr>
+      <tr><th>꺼내기</th><td><code>a[0]</code> — 자리 번호</td><td><code>d["A"]</code> — 키</td></tr>
+      <tr><th>없는 것을 꺼내면</th><td><code>IndexError</code></td><td><code>KeyError</code></td></tr>
+    </table>
+
+    <h3><span class="num">02</span>값 바꾸기와 추가하기</h3>
+    <p>뒤에서 만들 <code>params</code>처럼, 딕셔너리는 만든 뒤에도 고칠 수 있다.</p>
+    <pre><code>params = {"userId": 1}
+
+params["userId"] = 2      # 있는 키 → 값이 바뀐다
+params["id"] = 5          # 없는 키 → 새 칸이 생긴다
+print(params)             # {'userId': 2, 'id': 5}</code></pre>
+    <div class="cm-warn">
+      <div class="tag">주의</div>
+      대괄호 한 줄이 "바꾸기"와 "새로 만들기"를 모두 한다. 그래서 <strong>키를 잘못 적으면 고쳐지는 대신 새 칸이 생기고, 오류도 나지 않는다.</strong>
+    </div>
+
+    <h3><span class="num">03</span>중첩된 응답 한 겹씩 읽기 <span style="font-weight:400;color:var(--muted);font-size:13px">— 이번 수업의 핵심</span></h3>
+    <p>값 자리에 리스트나 딕셔너리가 또 들어 있으면, 대괄호를 이어 붙여 한 겹씩 들어간다. Step2에서 만날 나이스 API 응답을 줄여서 따라가 보자.</p>
+    <pre><code>data = {
+    "schoolInfo": [
+        {"head": [{"list_total_count": 1}]},
+        {"row": [{"SCHUL_NM": "광명고등학교", "SD_SCHUL_CODE": "7530580"}]}
+    ]
+}
+
+print(data["schoolInfo"][1]["row"][0]["SD_SCHUL_CODE"])   # 7530580</code></pre>
+    <table>
+      <tr><th><code>data["schoolInfo"]</code></th><td><strong>리스트</strong> — 안에 <code>head</code>, <code>row</code>가 순서대로 들어 있다</td></tr>
+      <tr><th><code>[1]</code></th><td>리스트이므로 <strong>번호</strong>로 꺼낸다 → <code>{"row": [...]}</code> 딕셔너리</td></tr>
+      <tr><th><code>["row"]</code></th><td>딕셔너리이므로 <strong>키</strong>로 꺼낸다 → 학교 목록 리스트</td></tr>
+      <tr><th><code>[0]</code></th><td>리스트이므로 번호로 꺼낸다 → 학교 한 곳의 정보 딕셔너리</td></tr>
+      <tr><th><code>["SD_SCHUL_CODE"]</code></th><td>딕셔너리이므로 키로 꺼낸다 → <code>"7530580"</code></td></tr>
+    </table>
+    <div class="cm-lead">
+      <strong>손에 든 것이 리스트면 번호, 딕셔너리면 키.</strong>
+      막히면 대괄호를 한 겹씩만 붙여 <code>print</code>해 보면 지금 무엇을 들고 있는지 보인다.
+    </div>
+
+    <h3><span class="num">04</span>없는 키를 꺼내면</h3>
+    <pre><code>data = {"title": "sunt aut facere..."}
+
+# print(data["body"])         # KeyError: 'body'   없는 키를 꺼내면 멈춘다
+print("body" in data)         # False   먼저 있는지 물어보거나
+print(data.get("body"))       # None    get으로 꺼내거나
+print(data.get("body", "-"))  # -       없을 때 쓸 값을 정해 둔다</code></pre>
+    <p>API 요청이 실패했을 때(인증키 오류, 검색 결과 없음 등)는 기대한 키가 없는 응답이 올 수 있고, 이때 <code>KeyError</code>가 난다. <strong>먼저 <code>print(data)</code>로 응답 전체를 찍어 보면</strong> 어디서 어긋났는지 바로 보인다.</p>
+
+    <h3><span class="num">05</span>JSON과 파이썬 값의 대응</h3>
+    <table>
+      <tr><th>JSON</th><th>파이썬</th></tr>
+      <tr><td><code>{ "키": 값 }</code></td><td>딕셔너리 <code>{"키": 값}</code></td></tr>
+      <tr><td><code>[ ... ]</code></td><td>리스트 <code>[ ... ]</code></td></tr>
+      <tr><td><code>"문자열"</code>, <code>123</code></td><td>문자열, 숫자 그대로</td></tr>
+      <tr><td><code>true</code> / <code>false</code></td><td><code>True</code> / <code>False</code></td></tr>
+      <tr><td><code>null</code></td><td><code>None</code></td></tr>
+    </table>
+    <p><code>response.json()</code>은 JSON 텍스트를 위 표대로 파이썬 값으로 바꿔 준다. Step3에서는 교육청 이름과 코드를 짝지은 <code>offices</code> 딕셔너리를 직접 만들고, <code>list(offices.keys())</code>로 이름만 뽑아 선택창에 쓴다.</p>
+
+    <h3><span class="num">06</span>스스로 확인</h3>
+    <details class="result-box">
+      <summary class="tag">Q1. 위 <code>data["schoolInfo"][1]["row"][0]</code>의 결과는 리스트일까, 딕셔너리일까?</summary>
+      <pre>딕셔너리 — 학교 한 곳의 정보다. 그래서 바로 뒤에 ["SD_SCHUL_CODE"]처럼 키를 붙인다.</pre>
+    </details>
+    <details class="result-box">
+      <summary class="tag">Q2. <code>params["SCHUL_NAME"] = "광명고등학교"</code>처럼 키를 잘못 적으면 어떻게 될까?</summary>
+      <pre>오류 없이 새 키가 하나 더 생긴다. API는 그 이름을 알아듣지 못하므로 원하는 조건이 적용되지 않는다.</pre>
+    </details>
+  </div>
+
+  <div class="cm-foot">
+    <span>Esc 키를 누르거나 바깥을 눌러도 닫힌다</span>
+    <button type="button" data-close>닫기</button>
+  </div>
+</dialog>
+
+<script>
+  // 개념 팝업 열기·닫기
+  document.querySelectorAll('[data-modal]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var dlg = document.getElementById(btn.getAttribute('data-modal'));
+      if (!dlg) return;
+      dlg.showModal();
+      dlg.querySelector('.cm-body').scrollTop = 0;
+      document.body.classList.add('modal-open');
+    });
+  });
+  document.querySelectorAll('dialog.cm').forEach(function (dlg) {
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+    dlg.querySelectorAll('[data-close]').forEach(function (b) {
+      b.addEventListener('click', function () { dlg.close(); });
+    });
+    dlg.addEventListener('close', function () { document.body.classList.remove('modal-open'); });
+  });
+</script>
+<script>
+  // 실습 체크리스트
+  document.querySelectorAll('.steps').forEach(function (list) {
+    var items = list.querySelectorAll('li');
+    var total = items.length;
+    var progress = document.createElement('div');
+    progress.className = 'steps-progress';
+    function update() {
+      var done = list.querySelectorAll('li.done').length;
+      progress.textContent = done + ' / ' + total + ' 완료';
+    }
+    list.parentNode.insertBefore(progress, list);
+    items.forEach(function (li) {
+      li.addEventListener('click', function () {
+        li.classList.toggle('done');
+        update();
+      });
+    });
+    update();
+  });
+
+  // 스크롤 시 등장 애니메이션
+  var revealEls = document.querySelectorAll('.container > *:not(.stepnav):not(header.top):not(footer.next)');
+  revealEls.forEach(function (el) { el.classList.add('reveal'); });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(function (el) { io.observe(el); });
+
+  // 상단 진행률 바
+  var bar = document.getElementById('progressbar');
+  function updateBar() {
+    var h = document.documentElement;
+    var scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = (isFinite(scrolled) ? scrolled : 0) + '%';
+  }
+  window.addEventListener('scroll', updateBar);
+  updateBar();
+
+  // 맨 위로 버튼
+  var backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', function () {
+    backToTop.classList.toggle('show', window.scrollY > 400);
+  });
+  backToTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+<script src="code-highlight.js"></script>
+</body>
+</html>
